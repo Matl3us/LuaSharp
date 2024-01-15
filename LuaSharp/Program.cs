@@ -2,18 +2,20 @@
 {
     public static void Main(string[] args)
     {
-        foreach (var arg in args)
+        if (args.Length != 1)
         {
-            Console.WriteLine(arg);
+            Console.WriteLine("No file specified!");
+            return;
         }
 
-        string path = "D:\\Interpreter\\LuaSharp\\LuaSharp\\hello.lua";
+        string path = args[0];
 
         try
         {
             if (!File.Exists(path))
             {
-                Console.WriteLine("Error no file under path" + path);
+                Console.WriteLine("Invalid path to a file.");
+                return;
             }
 
             using (StreamReader sr = new StreamReader(path))
