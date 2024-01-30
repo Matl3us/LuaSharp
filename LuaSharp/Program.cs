@@ -1,4 +1,6 @@
-﻿class Program
+﻿using LuaSharp;
+
+class Program
 {
     public static void Main(string[] args)
     {
@@ -20,13 +22,15 @@
 
             using (StreamReader sr = new StreamReader(path))
             {
-                while (sr.Peek() >= 0)
+                Lexer lexer = new Lexer(sr);
+
+                while (true)
                 {
-                    Console.Write((char)sr.Read());
+                    Token tok = lexer.NextToken();
+                    Console.WriteLine(tok.ToString());
+                    if (tok.Type == TokenType.EOF) break;
                 }
             }
-
-            Console.ReadLine();
         }
         catch (Exception e)
         {
