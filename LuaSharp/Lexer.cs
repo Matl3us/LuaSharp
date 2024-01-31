@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace LuaSharp
 {
     public class Lexer
@@ -10,6 +12,15 @@ namespace LuaSharp
         private char _char;
         private int _line = 1;
         private int _column = 0;
+        private Dictionary<string, TokenType> _keywords = new Dictionary<string, TokenType>()
+        {
+            {"and", TokenType.AND}, {"break", TokenType.BREAK}, {"do", TokenType.DO}, {"else", TokenType.ELSE},
+            {"elseif", TokenType.ELSEIF}, {"end", TokenType.END}, {"false", TokenType.FALSE}, {"for", TokenType.FOR},
+            {"function", TokenType.FUNCTION}, {"if", TokenType.IF}, {"in", TokenType.IN}, {"local", TokenType.LOCAL},
+            {"nil", TokenType.NIL}, {"not", TokenType.NOT}, {"or", TokenType.OR}, {"repeat", TokenType.REPEAT},
+            {"return", TokenType.RETURN}, {"then", TokenType.THEN}, {"true", TokenType.TRUE},
+            {"until", TokenType.UNTIL}, {"while", TokenType.WHILE}
+        };
 
         public Token NextToken()
         {
@@ -142,7 +153,23 @@ namespace LuaSharp
                         }
                         break;
                     default:
-                        tok = new Token(TokenType.ILLEGAL, _char.ToString(), _line, _column);
+                        if (char.IsLetter(_char))
+                        {
+                            string identifier = ReadIdentifier();
+                            if (_keywords.TryGetValue(identifier, out TokenType value))
+                            {
+                                tok = new Token(value, identifier, _line, _column);
+                            }
+                            else
+                            {
+                                tok = new Token(TokenType.Identifier, identifier, _line, _column);
+                            }
+                            _column += identifier.Length;
+                        }
+                        else
+                        {
+                            tok = new Token(TokenType.ILLEGAL, _char.ToString(), _line, _column);
+                        }
                         break;
                 }
             }
@@ -170,5 +197,22 @@ namespace LuaSharp
                 _char = (char)Stream.Read();
             }
         }
+
+        private string ReadIdentifier()
+        {
+            StringBuilder sb = new StringBuilder(_char.ToString());
+            _char = (char)Stream.Read();
+
+            while (char.IsLetterOrDigit(_char) || _char == '_')
+            {
+                sb.Append(_char);
+                _char = (char)Stream.Read();
+            }
+
+            return sb.ToString();
+        }
+
+
+
     }
 }

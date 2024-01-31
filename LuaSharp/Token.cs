@@ -18,6 +18,29 @@ namespace LuaSharp
 
     public enum TokenType
     {
+        // Keywords
+        AND,
+        BREAK,
+        DO,
+        ELSE,
+        ELSEIF,
+        END,
+        FALSE,
+        FOR,
+        FUNCTION,
+        IF,
+        IN,
+        LOCAL,
+        NIL,
+        NOT,
+        OR,
+        REPEAT,
+        RETURN,
+        THEN,
+        TRUE,
+        UNTIL,
+        WHILE,
+        // Operators
         Plus,
         Minus,
         Asterisk,
@@ -45,6 +68,8 @@ namespace LuaSharp
         Concat,
         Ellipsis,
 
+        // Rest
+        Identifier,
         ILLEGAL,
         EOF
     }
