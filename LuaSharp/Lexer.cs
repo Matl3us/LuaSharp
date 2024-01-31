@@ -35,88 +35,88 @@ namespace LuaSharp
                 switch (_char)
                 {
                     case '+':
-                        tok = new Token(TokenType.Plus, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.PLUS, _char.ToString(), _line, _column);
                         break;
                     case '-':
-                        tok = new Token(TokenType.Minus, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.MINUS, _char.ToString(), _line, _column);
                         break;
                     case '*':
-                        tok = new Token(TokenType.Asterisk, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.ASTERISK, _char.ToString(), _line, _column);
                         break;
                     case '/':
-                        tok = new Token(TokenType.Slash, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.SLASH, _char.ToString(), _line, _column);
                         break;
                     case '%':
-                        tok = new Token(TokenType.Percentage, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.PERCENTAGE, _char.ToString(), _line, _column);
                         break;
                     case '^':
-                        tok = new Token(TokenType.Caret, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.CARET, _char.ToString(), _line, _column);
                         break;
                     case '#':
-                        tok = new Token(TokenType.Hashtag, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.HASHTAG, _char.ToString(), _line, _column);
                         break;
                     case '<':
                         if ((char)Stream.Peek() == '=')
                         {
                             Stream.Read();
-                            tok = new Token(TokenType.LessEqual, "<=", _line, _column);
+                            tok = new Token(TokenType.LESS_EQUAL, "<=", _line, _column);
                             _column++;
                         }
                         else
                         {
-                            tok = new Token(TokenType.Less, _char.ToString(), _line, _column);
+                            tok = new Token(TokenType.LESS, _char.ToString(), _line, _column);
                         }
                         break;
                     case '>':
                         if ((char)Stream.Peek() == '=')
                         {
                             Stream.Read();
-                            tok = new Token(TokenType.MoreEqual, ">=", _line, _column);
+                            tok = new Token(TokenType.MORE_EQUAL, ">=", _line, _column);
                             _column++;
                         }
                         else
                         {
-                            tok = new Token(TokenType.More, _char.ToString(), _line, _column);
+                            tok = new Token(TokenType.MORE, _char.ToString(), _line, _column);
                         }
                         break;
                     case '=':
                         if ((char)Stream.Peek() == '=')
                         {
                             Stream.Read();
-                            tok = new Token(TokenType.Equal, "==", _line, _column);
+                            tok = new Token(TokenType.EQUAL, "==", _line, _column);
                             _column++;
                         }
                         else
                         {
-                            tok = new Token(TokenType.Assign, _char.ToString(), _line, _column);
+                            tok = new Token(TokenType.ASSIGN, _char.ToString(), _line, _column);
                         }
                         break;
                     case '(':
-                        tok = new Token(TokenType.LParent, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.L_PARENT, _char.ToString(), _line, _column);
                         break;
                     case ')':
-                        tok = new Token(TokenType.RParent, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.R_PARENT, _char.ToString(), _line, _column);
                         break;
                     case '{':
-                        tok = new Token(TokenType.LCurly, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.L_CURLY, _char.ToString(), _line, _column);
                         break;
                     case '}':
-                        tok = new Token(TokenType.RCurly, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.R_CURLY, _char.ToString(), _line, _column);
                         break;
                     case '[':
-                        tok = new Token(TokenType.LSquare, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.L_SQUARE, _char.ToString(), _line, _column);
                         break;
                     case ']':
-                        tok = new Token(TokenType.RSquare, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.R_SQUARE, _char.ToString(), _line, _column);
                         break;
                     case ';':
-                        tok = new Token(TokenType.Semicolon, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.SEMICOLON, _char.ToString(), _line, _column);
                         break;
                     case ':':
-                        tok = new Token(TokenType.Colon, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.COLON, _char.ToString(), _line, _column);
                         break;
                     case ',':
-                        tok = new Token(TokenType.Comma, _char.ToString(), _line, _column);
+                        tok = new Token(TokenType.COMMA, _char.ToString(), _line, _column);
                         break;
                     case '.':
                         if ((char)Stream.Peek() == '.')
@@ -125,18 +125,18 @@ namespace LuaSharp
                             if ((char)Stream.Peek() == '.')
                             {
                                 Stream.Read();
-                                tok = new Token(TokenType.Ellipsis, "...", _line, _column);
+                                tok = new Token(TokenType.ELLIPSIS, "...", _line, _column);
                                 _column += 2;
                             }
                             else
                             {
-                                tok = new Token(TokenType.Concat, "..", _line, _column);
+                                tok = new Token(TokenType.CONCAT, "..", _line, _column);
                                 _column++;
                             }
                         }
                         else
                         {
-                            tok = new Token(TokenType.Dot, _char.ToString(), _line, _column);
+                            tok = new Token(TokenType.DOT, _char.ToString(), _line, _column);
                         }
 
                         break;
@@ -144,7 +144,7 @@ namespace LuaSharp
                         if ((char)Stream.Peek() == '=')
                         {
                             Stream.Read();
-                            tok = new Token(TokenType.NotEqual, "~=", _line, _column);
+                            tok = new Token(TokenType.NOT_EQUAL, "~=", _line, _column);
                             _column++;
                         }
                         else
@@ -162,9 +162,15 @@ namespace LuaSharp
                             }
                             else
                             {
-                                tok = new Token(TokenType.Identifier, identifier, _line, _column);
+                                tok = new Token(TokenType.IDENTIFIER, identifier, _line, _column);
                             }
-                            _column += identifier.Length;
+                            _column += identifier.Length - 1;
+                        }
+                        else if (char.IsDigit(_char))
+                        {
+                            string numberString = ReadNumber();
+                            tok = new Token(TokenType.NUMERICAL, numberString, _line, _column);
+                            _column += numberString.Length - 1;
                         }
                         else
                         {
@@ -175,7 +181,7 @@ namespace LuaSharp
             }
             else
             {
-                tok = new Token(TokenType.EOF, "EOF", _line, _column);
+                tok = new Token(TokenType.EOF, "EOF", _line, _column + 1);
             }
             return tok;
         }
@@ -200,19 +206,34 @@ namespace LuaSharp
 
         private string ReadIdentifier()
         {
-            StringBuilder sb = new StringBuilder(_char.ToString());
-            _char = (char)Stream.Read();
+            StringBuilder sb = new StringBuilder(_char);
+            char ch = (char)Stream.Peek();
 
-            while (char.IsLetterOrDigit(_char) || _char == '_')
+            while (char.IsLetterOrDigit(ch) || ch == '_')
             {
                 sb.Append(_char);
                 _char = (char)Stream.Read();
+                ch = (char)Stream.Peek();
             }
 
+            sb.Append(_char);
             return sb.ToString();
         }
 
+        private string ReadNumber()
+        {
+            StringBuilder sb = new StringBuilder(_char);
+            char ch = (char)Stream.Peek();
 
+            while (char.IsLetterOrDigit(ch) || ch == '.' || ch == '-')
+            {
+                sb.Append(_char);
+                _char = (char)Stream.Read();
+                ch = (char)Stream.Peek();
+            }
 
+            sb.Append(_char);
+            return sb.ToString();
+        }
     }
 }
