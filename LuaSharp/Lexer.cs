@@ -45,13 +45,40 @@ namespace LuaSharp
                         tok = new Token(TokenType.Hashtag, _char.ToString(), _line, _column);
                         break;
                     case '<':
-                        tok = new Token(TokenType.Less, _char.ToString(), _line, _column);
+                        if ((char)Stream.Peek() == '=')
+                        {
+                            Stream.Read();
+                            tok = new Token(TokenType.LessEqual, "<=", _line, _column);
+                            _column++;
+                        }
+                        else
+                        {
+                            tok = new Token(TokenType.Less, _char.ToString(), _line, _column);
+                        }
                         break;
                     case '>':
-                        tok = new Token(TokenType.More, _char.ToString(), _line, _column);
+                        if ((char)Stream.Peek() == '=')
+                        {
+                            Stream.Read();
+                            tok = new Token(TokenType.MoreEqual, ">=", _line, _column);
+                            _column++;
+                        }
+                        else
+                        {
+                            tok = new Token(TokenType.More, _char.ToString(), _line, _column);
+                        }
                         break;
                     case '=':
-                        tok = new Token(TokenType.Assign, _char.ToString(), _line, _column);
+                        if ((char)Stream.Peek() == '=')
+                        {
+                            Stream.Read();
+                            tok = new Token(TokenType.Equal, "==", _line, _column);
+                            _column++;
+                        }
+                        else
+                        {
+                            tok = new Token(TokenType.Assign, _char.ToString(), _line, _column);
+                        }
                         break;
                     case '(':
                         tok = new Token(TokenType.LParent, _char.ToString(), _line, _column);
@@ -81,7 +108,38 @@ namespace LuaSharp
                         tok = new Token(TokenType.Comma, _char.ToString(), _line, _column);
                         break;
                     case '.':
-                        tok = new Token(TokenType.Dot, _char.ToString(), _line, _column);
+                        if ((char)Stream.Peek() == '.')
+                        {
+                            _char = (char)Stream.Read();
+                            if ((char)Stream.Peek() == '.')
+                            {
+                                Stream.Read();
+                                tok = new Token(TokenType.Ellipsis, "...", _line, _column);
+                                _column += 2;
+                            }
+                            else
+                            {
+                                tok = new Token(TokenType.Concat, "..", _line, _column);
+                                _column++;
+                            }
+                        }
+                        else
+                        {
+                            tok = new Token(TokenType.Dot, _char.ToString(), _line, _column);
+                        }
+
+                        break;
+                    case '~':
+                        if ((char)Stream.Peek() == '=')
+                        {
+                            Stream.Read();
+                            tok = new Token(TokenType.NotEqual, "~=", _line, _column);
+                            _column++;
+                        }
+                        else
+                        {
+                            tok = new Token(TokenType.ILLEGAL, _char.ToString(), _line, _column);
+                        }
                         break;
                     default:
                         tok = new Token(TokenType.ILLEGAL, _char.ToString(), _line, _column);
