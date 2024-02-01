@@ -38,7 +38,16 @@ namespace LuaSharp
                         tok = new Token(TokenType.PLUS, _char.ToString(), _line, _column);
                         break;
                     case '-':
-                        tok = new Token(TokenType.MINUS, _char.ToString(), _line, _column);
+                        if ((char)Stream.Peek() == '-')
+                        {
+                            Stream.Read();
+                            tok = new Token(TokenType.COMMENT, "", _line, _column);
+                            SkipComment();
+                        }
+                        else
+                        {
+                            tok = new Token(TokenType.MINUS, _char.ToString(), _line, _column);
+                        }
                         break;
                     case '*':
                         tok = new Token(TokenType.ASTERISK, _char.ToString(), _line, _column);
@@ -152,6 +161,11 @@ namespace LuaSharp
                             tok = new Token(TokenType.ILLEGAL, _char.ToString(), _line, _column);
                         }
                         break;
+                    case '\"':
+                    case '\'':
+                        string str = ReadString();
+                        tok = new Token(TokenType.STRING, str, _line, _column);
+                        break;
                     default:
                         if (char.IsLetter(_char))
                         {
@@ -204,6 +218,16 @@ namespace LuaSharp
             }
         }
 
+        private void SkipComment()
+        {
+            while (_char != '\n')
+            {
+                _char = (char)Stream.Read();
+            }
+            _column = 0;
+            _line++;
+        }
+
         private string ReadIdentifier()
         {
             StringBuilder sb = new StringBuilder(_char);
@@ -233,6 +257,25 @@ namespace LuaSharp
             }
 
             sb.Append(_char);
+            return sb.ToString();
+        }
+
+        private string ReadString()
+        {
+            StringBuilder sb = new StringBuilder(_char);
+            char closingSign = _char;
+            char ch = (char)Stream.Peek();
+
+            while (!(ch == closingSign && _char != '\\'))
+            {
+                sb.Append(_char);
+                _char = (char)Stream.Read();
+                ch = (char)Stream.Peek();
+            }
+
+            sb.Append(_char);
+            sb.Append(ch);
+            _char = (char)Stream.Read();
             return sb.ToString();
         }
     }

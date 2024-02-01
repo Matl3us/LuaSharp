@@ -71,6 +71,8 @@ namespace LuaSharp
         // Rest
         IDENTIFIER,
         NUMERICAL,
+        STRING,
+        COMMENT,
         ILLEGAL,
         EOF
     }
