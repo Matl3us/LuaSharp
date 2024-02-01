@@ -17,10 +17,15 @@ class Program
         {
             case "-c":
 
+                string prompt = ">> ";
+                Console.WriteLine("Console mode activated. Type 'exit' to exit the program.");
                 while (true)
                 {
+                    Console.Write(prompt);
+
                     string? s = Console.ReadLine();
                     if (s == null) return;
+                    if (s == "exit") return;
 
                     byte[] byteArray = Encoding.ASCII.GetBytes(s);
                     MemoryStream stream = new MemoryStream(byteArray);
