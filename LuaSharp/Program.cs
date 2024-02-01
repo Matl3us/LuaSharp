@@ -1,40 +1,80 @@
-﻿using LuaSharp;
+﻿using System.Text;
+using LuaSharp;
 
 class Program
 {
     public static void Main(string[] args)
     {
-        if (args.Length != 1)
+        if (args.Length < 1)
         {
-            Console.WriteLine("No file specified!");
+            Console.WriteLine("\nNo arguments selected. Please select correct argument:");
+            Console.WriteLine("> -c for console mode");
+            Console.WriteLine("> -f <path to file> for file mode\n");
             return;
         }
 
-        string path = args[0];
-
-        try
+        switch (args[0])
         {
-            if (!File.Exists(path))
-            {
-                Console.WriteLine("Invalid path to a file.");
-                return;
-            }
-
-            using (StreamReader sr = new StreamReader(path))
-            {
-                Lexer lexer = new Lexer(sr);
+            case "-c":
 
                 while (true)
                 {
-                    Token tok = lexer.NextToken();
-                    Console.WriteLine(tok.ToString());
-                    if (tok.Type == TokenType.EOF) break;
+                    string? s = Console.ReadLine();
+                    if (s == null) return;
+
+                    byte[] byteArray = Encoding.ASCII.GetBytes(s);
+                    MemoryStream stream = new MemoryStream(byteArray);
+
+                    Lexer lexer = new Lexer(new StreamReader(stream));
+
+                    while (true)
+                    {
+                        Token tok = lexer.NextToken();
+                        if (tok.Type == TokenType.EOF) break;
+                        Console.WriteLine(tok.ToString());
+                    }
                 }
-            }
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine("Exception: " + e.Message);
+
+            case "-f":
+                if (args.Length != 2)
+                {
+                    Console.WriteLine("\nNo file selected. Please select a file with -f <path to file>\n");
+                    return;
+                }
+
+                string path = args[1];
+
+                try
+                {
+                    if (!File.Exists(path))
+                    {
+                        Console.WriteLine("\nInvalid path to a file.\n");
+                        return;
+                    }
+
+                    using (StreamReader sr = new StreamReader(path))
+                    {
+                        Lexer lexer = new Lexer(sr);
+
+                        while (true)
+                        {
+                            Token tok = lexer.NextToken();
+                            Console.WriteLine(tok.ToString());
+                            if (tok.Type == TokenType.EOF) break;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Exception: " + e.Message);
+                }
+
+                break;
+            default:
+                Console.WriteLine("\nIncorrect option selected. Please select correct argument:");
+                Console.WriteLine("> -c for console mode");
+                Console.WriteLine("> -f <path to file> for file mode\n");
+                break;
         }
     }
 }
