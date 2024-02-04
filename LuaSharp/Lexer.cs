@@ -166,6 +166,11 @@ namespace LuaSharp
                         string str = ReadString();
                         tok = new Token(TokenType.STRING, str, _line, _column);
                         break;
+                    case '\n':
+                        tok = new Token(TokenType.NEWLINE, "", _line, _column);
+                        _line++;
+                        _column = 0;
+                        break;
                     default:
                         if (char.IsLetter(_char))
                         {
@@ -206,14 +211,9 @@ namespace LuaSharp
             {
                 if (_char == '\n')
                 {
-                    _line++;
-                    _column = 1;
+                    break;
                 }
-                else
-                {
-                    _column++;
-                }
-
+                _column++;
                 _char = (char)Stream.Read();
             }
         }

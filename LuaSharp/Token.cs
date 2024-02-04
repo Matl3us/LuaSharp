@@ -73,6 +73,7 @@ namespace LuaSharp
         NUMERICAL,
         STRING,
         COMMENT,
+        NEWLINE,
         ILLEGAL,
         EOF
     }

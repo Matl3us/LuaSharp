@@ -31,13 +31,9 @@ class Program
                     MemoryStream stream = new MemoryStream(byteArray);
 
                     Lexer lexer = new Lexer(new StreamReader(stream));
-
-                    while (true)
-                    {
-                        Token tok = lexer.NextToken();
-                        if (tok.Type == TokenType.EOF) break;
-                        Console.WriteLine(tok.ToString());
-                    }
+                    Parser parser = new Parser(lexer);
+                    AST ast = parser.ParseCode();
+                    ast.PrintStatements();
                 }
 
             case "-f":
@@ -60,13 +56,9 @@ class Program
                     using (StreamReader sr = new StreamReader(path))
                     {
                         Lexer lexer = new Lexer(sr);
-
-                        while (true)
-                        {
-                            Token tok = lexer.NextToken();
-                            Console.WriteLine(tok.ToString());
-                            if (tok.Type == TokenType.EOF) break;
-                        }
+                        Parser parser = new Parser(lexer);
+                        AST ast = parser.ParseCode();
+                        ast.PrintStatements();
                     }
                 }
                 catch (Exception e)
