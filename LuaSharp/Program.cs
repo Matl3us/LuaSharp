@@ -33,6 +33,8 @@ class Program
                     Lexer lexer = new Lexer(new StreamReader(stream));
                     Parser parser = new Parser(lexer);
                     AST ast = parser.ParseCode();
+
+                    parser.Errors();
                     ast.PrintStatements();
                 }
 
@@ -58,6 +60,8 @@ class Program
                         Lexer lexer = new Lexer(sr);
                         Parser parser = new Parser(lexer);
                         AST ast = parser.ParseCode();
+
+                        parser.Errors();
                         ast.PrintStatements();
                     }
                 }

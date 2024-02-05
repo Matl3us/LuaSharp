@@ -7,11 +7,13 @@ namespace LuaSharp
             lex = l;
             NextToken();
             NextToken();
+            errors = new List<string>();
         }
 
         public Lexer lex;
         public Token curToken;
         public Token peekToken;
+        public List<string> errors;
 
         public void NextToken()
         {
@@ -95,8 +97,23 @@ namespace LuaSharp
             }
             else
             {
+                AddPeekError(type);
                 return false;
             }
+        }
+
+        public void Errors()
+        {
+            foreach (string err in errors)
+            {
+                Console.WriteLine($"Error: {err}");
+            }
+        }
+
+        public void AddPeekError(TokenType type)
+        {
+            string msg = $"Expected token {type} but got {peekToken.Type} instead";
+            errors.Add(msg);
         }
     }
 }
