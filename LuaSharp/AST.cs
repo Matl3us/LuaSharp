@@ -25,11 +25,21 @@ namespace LuaSharp
 
     public struct AssignStatement : IStatement
     {
+        public Token token;
         public Identifier name;
 
         public string TokenLiteral()
         {
-            return $"Literal: {name.value}";
+            return $"Literal: {token.Literal}";
+        }
+    }
+
+    public struct ReturnStatement : IStatement
+    {
+        public Token token;
+        public string TokenLiteral()
+        {
+            return $"Literal: {token.Literal}";
         }
     }
 }

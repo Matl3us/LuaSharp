@@ -51,6 +51,8 @@ namespace LuaSharp
                     {
                         return null;
                     }
+                case TokenType.RETURN:
+                    return ParseReturnStatement();
                 default:
                     return null;
             }
@@ -60,6 +62,7 @@ namespace LuaSharp
         {
             AssignStatement statement = new AssignStatement
             {
+                token = curToken,
                 name = new Identifier() { token = curToken.Type, value = curToken.Literal }
             };
 
@@ -67,6 +70,23 @@ namespace LuaSharp
             {
                 return null;
             }
+
+            // TODO: Add expression parsing
+            // For now skip to the end of the line.
+            while (!IsCurToken(TokenType.NEWLINE) && !IsCurToken(TokenType.EOF))
+            {
+                NextToken();
+            }
+
+            return statement;
+        }
+
+        public ReturnStatement? ParseReturnStatement()
+        {
+            ReturnStatement statement = new ReturnStatement()
+            {
+                token = curToken
+            };
 
             // TODO: Add expression parsing
             // For now skip to the end of the line.
@@ -112,7 +132,7 @@ namespace LuaSharp
 
         public void AddPeekError(TokenType type)
         {
-            string msg = $"Expected token {type} but got {peekToken.Type} instead";
+            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nExpected token {type} but got {peekToken.Type} instead\n";
             errors.Add(msg);
         }
     }
