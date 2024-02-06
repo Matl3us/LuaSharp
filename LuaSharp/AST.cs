@@ -20,12 +20,22 @@ namespace LuaSharp
     public interface IStatement : INode { };
     public interface IExpression : INode { };
 
+    // Expressions
+
     public struct Identifier : IExpression
     {
         public Token token;
         public string value;
         public string TokenLiteral() => token.Literal;
         public string String() => value;
+    }
+
+    public struct NumericalLiteral : IExpression
+    {
+        public Token token;
+        public double value;
+        public string TokenLiteral() => token.Literal;
+        public string String() => token.Literal;
     }
 
     // Statements

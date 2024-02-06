@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace LuaSharp
 {
     public class Parser
@@ -9,9 +11,10 @@ namespace LuaSharp
             NextToken();
             errors = new List<string>();
 
-            PrefixParseFunc = new Dictionary<TokenType, Func<IExpression>>()
+            PrefixParseFunc = new Dictionary<TokenType, Func<IExpression?>>()
             {
-                {TokenType.IDENTIFIER, ParseIdentifier}
+                {TokenType.IDENTIFIER, ParseIdentifier},
+                {TokenType.NUMERICAL, ParseNumerical}
             };
         }
 
@@ -20,8 +23,24 @@ namespace LuaSharp
         public Token peekToken;
         public List<string> errors;
 
-        public Dictionary<TokenType, Func<IExpression>> PrefixParseFunc;
+        public Dictionary<TokenType, Func<IExpression?>> PrefixParseFunc;
         public IExpression ParseIdentifier() => new Identifier() { token = curToken, value = curToken.Literal };
+        public IExpression? ParseNumerical()
+        {
+            if (double.TryParse(curToken.Literal, NumberStyles.Any, CultureInfo.InvariantCulture, out double value))
+            {
+                NumericalLiteral literal = new NumericalLiteral()
+                {
+                    token = curToken,
+                    value = value
+                };
+                return literal;
+            }
+            else
+            {
+                return null;
+            }
+        }
 
         //public Dictionary<TokenType, Func<IExpression, IExpression>> InfixParseFunc;
         public enum Precedence : int
@@ -97,7 +116,7 @@ namespace LuaSharp
 
         public IExpression? ParseExpression(int precedence)
         {
-            if (PrefixParseFunc.TryGetValue(curToken.Type, out Func<IExpression>? value))
+            if (PrefixParseFunc.TryGetValue(curToken.Type, out Func<IExpression?>? value))
             {
                 var prefixFunc = value;
                 return prefixFunc();
