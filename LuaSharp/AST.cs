@@ -18,11 +18,14 @@ namespace LuaSharp
         public string String();
     }
     public interface IStatement : INode { };
+    public interface IExpression : INode { };
 
-    public struct Identifier
+    public struct Identifier : IExpression
     {
-        public TokenType token;
+        public Token token;
         public string value;
+        public string TokenLiteral() => token.Literal;
+        public string String() => value;
     }
 
     // Statements
@@ -30,8 +33,19 @@ namespace LuaSharp
     public struct ExpressionStatement : IStatement
     {
         public Token token;
+        public IExpression? expression;
         public string TokenLiteral() => token.Literal;
-        public string String() => $"";
+        public string String()
+        {
+            if (expression != null)
+            {
+                return expression.String();
+            }
+            else
+            {
+                return "";
+            }
+        }
     }
 
     public struct AssignStatement : IStatement
@@ -40,7 +54,7 @@ namespace LuaSharp
         public Identifier name;
 
         public string TokenLiteral() => token.Literal;
-        public string String() => $"{name.value} {TokenLiteral()}";
+        public string String() => $"{name.String()} {TokenLiteral()}";
     }
 
     public struct ReturnStatement : IStatement

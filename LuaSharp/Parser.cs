@@ -8,12 +8,35 @@ namespace LuaSharp
             NextToken();
             NextToken();
             errors = new List<string>();
+
+            PrefixParseFunc = new Dictionary<TokenType, Func<IExpression>>()
+            {
+                {TokenType.IDENTIFIER, ParseIdentifier}
+            };
         }
 
         public Lexer lex;
         public Token curToken;
         public Token peekToken;
         public List<string> errors;
+
+        public Dictionary<TokenType, Func<IExpression>> PrefixParseFunc;
+        public IExpression ParseIdentifier() => new Identifier() { token = curToken, value = curToken.Literal };
+
+        //public Dictionary<TokenType, Func<IExpression, IExpression>> InfixParseFunc;
+        public enum Precedence : int
+        {
+            FuncCall,
+            Unary,          // not # -
+            Concatenation,  // ..
+            Multiplicative, // * / %
+            Additive,       // + -
+            Relational,     // < > <= >= == ~= 
+            Equality,       // == ~=
+            AND,            // and
+            OR,             // 	or
+            Lowest
+        }
 
         public void NextToken()
         {
@@ -49,20 +72,44 @@ namespace LuaSharp
                     }
                     else
                     {
-                        return null;
+                        return ParseExpressionStatement();
                     }
                 case TokenType.RETURN:
                     return ParseReturnStatement();
-                default:
+                case TokenType.NEWLINE:
                     return null;
+                default:
+                    return ParseExpressionStatement();
+
             }
+        }
+
+        public ExpressionStatement ParseExpressionStatement()
+        {
+            ExpressionStatement statement = new ExpressionStatement
+            {
+                token = curToken,
+                expression = ParseExpression((int)Precedence.Lowest)
+            };
+
+            return statement;
+        }
+
+        public IExpression? ParseExpression(int precedence)
+        {
+            if (PrefixParseFunc.TryGetValue(curToken.Type, out Func<IExpression>? value))
+            {
+                var prefixFunc = value;
+                return prefixFunc();
+            }
+            return null;
         }
 
         public AssignStatement? ParseAssignStatement()
         {
             AssignStatement statement = new AssignStatement
             {
-                name = new Identifier() { token = curToken.Type, value = curToken.Literal }
+                name = new Identifier() { token = curToken, value = curToken.Literal }
             };
 
             if (!CheckNextToken(TokenType.ASSIGN))
