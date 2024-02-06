@@ -7,13 +7,15 @@ namespace LuaSharp
         {
             foreach (var st in statements)
             {
-                Console.WriteLine(st.TokenLiteral());
+                Console.WriteLine(st.String());
             }
         }
     }
+
     public interface INode
     {
         public string TokenLiteral();
+        public string String();
     }
     public interface IStatement : INode { };
 
@@ -23,23 +25,28 @@ namespace LuaSharp
         public string value;
     }
 
+    // Statements
+
+    public struct ExpressionStatement : IStatement
+    {
+        public Token token;
+        public string TokenLiteral() => token.Literal;
+        public string String() => $"";
+    }
+
     public struct AssignStatement : IStatement
     {
         public Token token;
         public Identifier name;
 
-        public string TokenLiteral()
-        {
-            return $"Literal: {token.Literal}";
-        }
+        public string TokenLiteral() => token.Literal;
+        public string String() => $"{name.value} {TokenLiteral()}";
     }
 
     public struct ReturnStatement : IStatement
     {
         public Token token;
-        public string TokenLiteral()
-        {
-            return $"Literal: {token.Literal}";
-        }
+        public string TokenLiteral() => token.Literal;
+        public string String() => $"{TokenLiteral()}";
     }
 }

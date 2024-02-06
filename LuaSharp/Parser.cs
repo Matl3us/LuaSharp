@@ -62,7 +62,6 @@ namespace LuaSharp
         {
             AssignStatement statement = new AssignStatement
             {
-                token = curToken,
                 name = new Identifier() { token = curToken.Type, value = curToken.Literal }
             };
 
@@ -70,6 +69,8 @@ namespace LuaSharp
             {
                 return null;
             }
+
+            statement.token = curToken;
 
             // TODO: Add expression parsing
             // For now skip to the end of the line.
