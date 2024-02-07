@@ -14,7 +14,10 @@ namespace LuaSharp
             PrefixParseFunc = new Dictionary<TokenType, Func<IExpression?>>()
             {
                 {TokenType.IDENTIFIER, ParseIdentifier},
-                {TokenType.NUMERICAL, ParseNumerical}
+                {TokenType.NUMERICAL, ParseNumerical},
+                {TokenType.MINUS, ParsePrefixExpression},
+                {TokenType.NOT, ParsePrefixExpression},
+                {TokenType.HASHTAG, ParsePrefixExpression}
             };
         }
 
@@ -40,6 +43,18 @@ namespace LuaSharp
             {
                 return null;
             }
+        }
+        public IExpression ParsePrefixExpression()
+        {
+            PrefixExpression expression = new PrefixExpression()
+            {
+                token = curToken,
+                operatorSign = curToken.Literal
+            };
+
+            NextToken();
+            expression.rightSide = ParseExpression((int)Precedence.Unary);
+            return expression;
         }
 
         //public Dictionary<TokenType, Func<IExpression, IExpression>> InfixParseFunc;
@@ -121,6 +136,7 @@ namespace LuaSharp
                 var prefixFunc = value;
                 return prefixFunc();
             }
+            AddPrefixParseError(curToken.Type);
             return null;
         }
 
@@ -200,6 +216,12 @@ namespace LuaSharp
         public void AddPeekError(TokenType type)
         {
             string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nExpected token {type} but got {peekToken.Type} instead\n";
+            errors.Add(msg);
+        }
+
+        public void AddPrefixParseError(TokenType type)
+        {
+            string msg = $"No prefix parse function for {type} found";
             errors.Add(msg);
         }
     }

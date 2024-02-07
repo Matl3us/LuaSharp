@@ -38,6 +38,25 @@ namespace LuaSharp
         public string String() => token.Literal;
     }
 
+    public struct PrefixExpression : IExpression
+    {
+        public Token token;
+        public string operatorSign;
+        public IExpression? rightSide;
+        public string TokenLiteral() => token.Literal;
+        public string String()
+        {
+            if (rightSide != null)
+            {
+                return $"[{operatorSign} {rightSide.String()}]";
+            }
+            else
+            {
+                return $"[{operatorSign} no expression]";
+            }
+        }
+    }
+
     // Statements
 
     public struct ExpressionStatement : IStatement
