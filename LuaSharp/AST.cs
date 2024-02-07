@@ -57,6 +57,26 @@ namespace LuaSharp
         }
     }
 
+    public struct InfixExpression : IExpression
+    {
+        public Token token;
+        public string operatorSign;
+        public IExpression leftSide;
+        public IExpression? rightSide;
+        public string TokenLiteral() => token.Literal;
+        public string String()
+        {
+            if (rightSide != null)
+            {
+                return $"[{leftSide.String()} {operatorSign} {rightSide.String()}]";
+            }
+            else
+            {
+                return $"[{leftSide.String()} {operatorSign} no expression]]";
+            }
+        }
+    }
+
     // Statements
 
     public struct ExpressionStatement : IStatement

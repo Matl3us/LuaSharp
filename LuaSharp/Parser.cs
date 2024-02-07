@@ -19,6 +19,20 @@ namespace LuaSharp
                 {TokenType.NOT, ParsePrefixExpression},
                 {TokenType.HASHTAG, ParsePrefixExpression}
             };
+
+            InfixParseFunc = new Dictionary<TokenType, Func<IExpression, IExpression>>()
+            {
+                {TokenType.PLUS, ParseInfixExpression},
+                {TokenType.MINUS, ParseInfixExpression},
+                {TokenType.ASTERISK, ParseInfixExpression},
+                {TokenType.SLASH, ParseInfixExpression},
+                {TokenType.EQUAL, ParseInfixExpression},
+                {TokenType.NOT_EQUAL, ParseInfixExpression},
+                {TokenType.LESS, ParseInfixExpression},
+                {TokenType.MORE, ParseInfixExpression},
+                {TokenType.LESS_EQUAL, ParseInfixExpression},
+                {TokenType.MORE_EQUAL, ParseInfixExpression},
+            };
         }
 
         public Lexer lex;
@@ -57,7 +71,23 @@ namespace LuaSharp
             return expression;
         }
 
-        //public Dictionary<TokenType, Func<IExpression, IExpression>> InfixParseFunc;
+        public Dictionary<TokenType, Func<IExpression, IExpression>> InfixParseFunc;
+        public IExpression ParseInfixExpression(IExpression leftSide)
+        {
+            InfixExpression expression = new InfixExpression()
+            {
+                token = curToken,
+                operatorSign = curToken.Literal,
+                leftSide = leftSide
+            };
+
+            int precedence = CurPrecedence();
+            NextToken();
+            expression.rightSide = ParseExpression(precedence);
+
+            return expression;
+        }
+
         public enum Precedence : int
         {
             FuncCall,
@@ -65,11 +95,40 @@ namespace LuaSharp
             Concatenation,  // ..
             Multiplicative, // * / %
             Additive,       // + -
-            Relational,     // < > <= >= == ~= 
+            Relational,     // < > <= >=
             Equality,       // == ~=
             AND,            // and
             OR,             // 	or
             Lowest
+        }
+
+        public Dictionary<TokenType, Precedence> precedenceMap = new Dictionary<TokenType, Precedence>()
+        {
+            {TokenType.ASTERISK, Precedence.Multiplicative}, {TokenType.SLASH, Precedence.Multiplicative},
+            {TokenType.PLUS, Precedence.Additive}, {TokenType.MINUS, Precedence.Additive},
+            {TokenType.LESS, Precedence.Relational}, {TokenType.MORE, Precedence.Relational},
+            {TokenType.LESS_EQUAL, Precedence.Relational}, {TokenType.MORE_EQUAL, Precedence.Relational},
+            {TokenType.EQUAL, Precedence.Equality}, {TokenType.NOT_EQUAL, Precedence.Equality}
+        };
+
+        public int PeekPrecedence()
+        {
+            if (precedenceMap.TryGetValue(peekToken.Type, out Precedence value))
+            {
+                return (int)value;
+            }
+
+            return (int)Precedence.Lowest;
+        }
+
+        public int CurPrecedence()
+        {
+            if (precedenceMap.TryGetValue(curToken.Type, out Precedence value))
+            {
+                return (int)value;
+            }
+
+            return (int)Precedence.Lowest;
         }
 
         public void NextToken()
@@ -131,10 +190,22 @@ namespace LuaSharp
 
         public IExpression? ParseExpression(int precedence)
         {
-            if (PrefixParseFunc.TryGetValue(curToken.Type, out Func<IExpression?>? value))
+            if (PrefixParseFunc.TryGetValue(curToken.Type, out Func<IExpression?>? prefixFunc))
             {
-                var prefixFunc = value;
-                return prefixFunc();
+                var leftExpression = prefixFunc();
+
+                while (!IsPeekToken(TokenType.NEWLINE) && !IsPeekToken(TokenType.EOF) && precedence > PeekPrecedence())
+                {
+                    if (InfixParseFunc.TryGetValue(peekToken.Type, out Func<IExpression, IExpression>? infixFunc))
+                    {
+                        NextToken();
+                        if (leftExpression != null)
+                        {
+                            leftExpression = infixFunc(leftExpression);
+                        }
+                    }
+                }
+                return leftExpression;
             }
             AddPrefixParseError(curToken.Type);
             return null;
