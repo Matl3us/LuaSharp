@@ -1,25 +1,18 @@
 namespace LuaSharp
 {
-    public struct Token
+    public readonly struct Token(TokenType type, string literal, int line, int column, string filename)
     {
-        public Token(TokenType type, string literal, int line, int column)
-        {
-            Type = type;
-            Literal = literal;
-            Line = line;
-            Column = column;
-        }
-        public TokenType Type { get; }
-        public string Literal { get; }
-        public int Line { get; }
-        public int Column { get; }
+        public TokenType Type { get; } = type;
+        public string Literal { get; } = literal;
+        public int Line { get; } = line;
+        public int Column { get; } = column;
+        public string FileName { get; } = filename;
         public override string ToString() => $"Type: {Type} Literal: {Literal} Line: {Line} Column: {Column}";
     }
 
     public enum TokenType
     {
-        // Keywords
-        AND,
+        // * Keywords *
         BREAK,
         DO,
         ELSE,
@@ -32,29 +25,41 @@ namespace LuaSharp
         IN,
         LOCAL,
         NIL,
-        NOT,
-        OR,
         REPEAT,
         RETURN,
         THEN,
         TRUE,
         UNTIL,
         WHILE,
-        // Operators
+
+        // * Operators *
+        // - Arithmetic Operators
         PLUS,
         MINUS,
         ASTERISK,
         SLASH,
         PERCENTAGE,
         CARET,
-        HASHTAG,
+
+        // - Relational Operators
         EQUAL,
         NOT_EQUAL,
         LESS_EQUAL,
         MORE_EQUAL,
         LESS,
         MORE,
+
+        // - Logical Operators
+        AND,
+        OR,
+        NOT,
+
+        // - Other Operators
+        HASHTAG,
+        CONCAT,
         ASSIGN,
+
+        // * Delimiters and Punctuation *
         L_PARENT,
         R_PARENT,
         L_CURLY,
@@ -65,15 +70,18 @@ namespace LuaSharp
         COLON,
         COMMA,
         DOT,
-        CONCAT,
         ELLIPSIS,
 
-        // Rest
+        // * Literals *
         IDENTIFIER,
         NUMERICAL,
         STRING,
+
+        // * Comment and Whitespace
         COMMENT,
         NEWLINE,
+
+        // * Miscellaneous *
         ILLEGAL,
         EOF
     }
