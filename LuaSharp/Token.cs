@@ -7,7 +7,7 @@ namespace LuaSharp
         public int Line { get; } = line;
         public int Column { get; } = column;
         public string FileName { get; } = filename;
-        public override string ToString() => $"Type: {Type} Literal: {Literal} Line: {Line} Column: {Column}";
+        public override string ToString() => $"[{Type},{Literal},{Line},{Column}]";
     }
 
     public enum TokenType
@@ -21,6 +21,7 @@ namespace LuaSharp
         FALSE,
         FOR,
         FUNCTION,
+        GOTO,
         IF,
         IN,
         LOCAL,
@@ -54,10 +55,20 @@ namespace LuaSharp
         OR,
         NOT,
 
+        // - Bitwise Operators
+        B_AND,
+        B_OR,
+        B_NOT,
+        B_RSHIFT,
+        B_LSHIFT,
+
         // - Other Operators
         HASHTAG,
         CONCAT,
         ASSIGN,
+        F_DIV,
+        LABEL,
+        VARARG,
 
         // * Delimiters and Punctuation *
         L_PARENT,
@@ -70,7 +81,6 @@ namespace LuaSharp
         COLON,
         COMMA,
         DOT,
-        ELLIPSIS,
 
         // * Literals *
         IDENTIFIER,

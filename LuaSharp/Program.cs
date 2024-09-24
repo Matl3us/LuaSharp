@@ -1,5 +1,5 @@
-﻿using System.Text;
-using LuaSharp;
+﻿using LuaSharp;
+using System.Text;
 
 class Program
 {
@@ -30,7 +30,7 @@ class Program
                     byte[] byteArray = Encoding.ASCII.GetBytes(s);
                     MemoryStream stream = new MemoryStream(byteArray);
 
-                    Lexer lexer = new Lexer(new StreamReader(stream));
+                    Lexer lexer = new Lexer(new StreamReader(stream), "");
                     Parser parser = new Parser(lexer);
                     AST ast = parser.ParseCode();
 
@@ -57,7 +57,7 @@ class Program
 
                     using (StreamReader sr = new StreamReader(path))
                     {
-                        Lexer lexer = new Lexer(sr);
+                        Lexer lexer = new Lexer(sr, path);
                         Parser parser = new Parser(lexer);
                         AST ast = parser.ParseCode();
 
