@@ -2,7 +2,7 @@ namespace LuaSharp
 {
     public class AST
     {
-        public List<IStatement> statements = new List<IStatement>();
+        public List<IStatement> statements = [];
         public void PrintStatements()
         {
             foreach (var st in statements)

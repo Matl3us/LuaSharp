@@ -2,16 +2,21 @@
 {
     public enum PrecedenceValue : int
     {
+        Lowest,
+        OR,              // or
+        AND,             // and
+        Equality,        // == ~=
+        Relational,      // < > <= >=
+        BitwiseOr,       // |
+        BitwiseXor,      // ~
+        BitwiseAnd,      // &
+        Shift,           // << >>
+        Concatenation,   // ..
+        Additive,        // + -
+        Multiplicative,  // * / // %
+        Unary,           // not # - ~
+        Exponentiation,  // ^
         FuncCall,
-        Unary,          // not # -
-        Concatenation,  // ..
-        Multiplicative, // * / %
-        Additive,       // + -
-        Relational,     // < > <= >=
-        Equality,       // == ~=
-        AND,            // and
-        OR,             // 	or
-        Lowest
     }
 
     public static class Precedence

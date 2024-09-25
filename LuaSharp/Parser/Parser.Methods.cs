@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace LuaSharp.Parser
 {
-    partial class Parser
+    public partial class Parser
     {
         public IExpression ParseIdentifier() => new Identifier() { token = curToken, value = curToken.Literal };
         public IExpression? ParseNumerical()
@@ -41,11 +41,11 @@ namespace LuaSharp.Parser
             var expression = new InfixExpression()
             {
                 token = curToken,
-                operatorSign = curToken.Literal,
                 leftSide = leftSide
             };
 
             int precedence = Precedence.CurPrecedence(curToken);
+            expression.operatorSign = curToken.Literal;
             NextToken();
             expression.rightSide = ParseExpression(precedence);
 
@@ -110,7 +110,7 @@ namespace LuaSharp.Parser
                 var leftExpression = prefixFunc();
 
                 while (!IsPeekToken(TokenType.NEWLINE) && !IsPeekToken(TokenType.EOF)
-                    && precedence > Precedence.PeekPrecedence(curToken))
+                    && precedence >= Precedence.PeekPrecedence(curToken))
                 {
                     if (InfixParseFunc.TryGetValue(peekToken.Type, out Func<IExpression, IExpression>? infixFunc))
                     {
@@ -198,13 +198,15 @@ namespace LuaSharp.Parser
             }
         }
 
-        public void Errors()
+        public void PrintErrors()
         {
             foreach (string err in errors)
             {
                 Console.WriteLine($"Error: {err}");
             }
         }
+
+        public List<string> GetErrors() => errors;
 
         public void AddPeekError(TokenType type)
         {

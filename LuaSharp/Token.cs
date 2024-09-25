@@ -58,7 +58,7 @@ namespace LuaSharp
         // - Bitwise Operators
         B_AND,
         B_OR,
-        B_NOT,
+        TILDE,
         B_RSHIFT,
         B_LSHIFT,
 

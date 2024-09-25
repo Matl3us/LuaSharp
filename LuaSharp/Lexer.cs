@@ -192,7 +192,7 @@ namespace LuaSharp
                         }
                         else
                         {
-                            tok = new Token(TokenType.B_NOT, _char.ToString(), _line, _column++, _filename);
+                            tok = new Token(TokenType.TILDE, _char.ToString(), _line, _column++, _filename);
                         }
                         break;
                     case '\"':

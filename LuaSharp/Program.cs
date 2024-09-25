@@ -35,7 +35,7 @@ class Program
                     var parser = new Parser(lexer);
                     AST ast = parser.ParseCode();
 
-                    parser.Errors();
+                    parser.PrintErrors();
                     ast.PrintStatements();
                 }
 
@@ -62,7 +62,7 @@ class Program
                     var parser = new Parser(lexer);
                     AST ast = parser.ParseCode();
 
-                    parser.Errors();
+                    parser.PrintErrors();
                     ast.PrintStatements();
                 }
                 catch (Exception e)

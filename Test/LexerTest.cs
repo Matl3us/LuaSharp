@@ -130,7 +130,7 @@ namespace Test
                 new (TokenType.CARET, "^", 1, 11, "test.lua"),
                 new (TokenType.HASHTAG, "#", 1, 13, "test.lua"),
                 new (TokenType.B_AND, "&", 1, 15, "test.lua"),
-                new (TokenType.B_NOT, "~", 1, 17, "test.lua"),
+                new (TokenType.TILDE, "~", 1, 17, "test.lua"),
                 new (TokenType.B_OR, "|", 1, 19, "test.lua"),
                 new (TokenType.B_LSHIFT, "<<", 1, 21, "test.lua"),
                 new (TokenType.B_RSHIFT, ">>", 1, 24, "test.lua"),
