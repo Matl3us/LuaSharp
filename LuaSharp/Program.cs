@@ -1,4 +1,5 @@
 ﻿using LuaSharp;
+using LuaSharp.Parser;
 using System.Text;
 
 class Program
@@ -28,10 +29,10 @@ class Program
                     if (s == "exit") return;
 
                     byte[] byteArray = Encoding.ASCII.GetBytes(s);
-                    MemoryStream stream = new MemoryStream(byteArray);
+                    var stream = new MemoryStream(byteArray);
 
-                    Lexer lexer = new Lexer(new StreamReader(stream), "");
-                    Parser parser = new Parser(lexer);
+                    var lexer = new Lexer(new StreamReader(stream), "");
+                    var parser = new Parser(lexer);
                     AST ast = parser.ParseCode();
 
                     parser.Errors();
@@ -55,15 +56,14 @@ class Program
                         return;
                     }
 
-                    using (StreamReader sr = new StreamReader(path))
-                    {
-                        Lexer lexer = new Lexer(sr, path);
-                        Parser parser = new Parser(lexer);
-                        AST ast = parser.ParseCode();
+                    using var sr = new StreamReader(path);
 
-                        parser.Errors();
-                        ast.PrintStatements();
-                    }
+                    var lexer = new Lexer(sr, path);
+                    var parser = new Parser(lexer);
+                    AST ast = parser.ParseCode();
+
+                    parser.Errors();
+                    ast.PrintStatements();
                 }
                 catch (Exception e)
                 {

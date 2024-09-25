@@ -1,52 +1,16 @@
+﻿using LuaSharp.utils;
 using System.Globalization;
 
-namespace LuaSharp
+namespace LuaSharp.Parser
 {
-    public class Parser
+    partial class Parser
     {
-        public Parser(Lexer l)
-        {
-            lex = l;
-            NextToken();
-            NextToken();
-            errors = new List<string>();
-
-            PrefixParseFunc = new Dictionary<TokenType, Func<IExpression?>>()
-            {
-                {TokenType.IDENTIFIER, ParseIdentifier},
-                {TokenType.NUMERICAL, ParseNumerical},
-                {TokenType.MINUS, ParsePrefixExpression},
-                {TokenType.NOT, ParsePrefixExpression},
-                {TokenType.HASHTAG, ParsePrefixExpression}
-            };
-
-            InfixParseFunc = new Dictionary<TokenType, Func<IExpression, IExpression>>()
-            {
-                {TokenType.PLUS, ParseInfixExpression},
-                {TokenType.MINUS, ParseInfixExpression},
-                {TokenType.ASTERISK, ParseInfixExpression},
-                {TokenType.SLASH, ParseInfixExpression},
-                {TokenType.EQUAL, ParseInfixExpression},
-                {TokenType.NOT_EQUAL, ParseInfixExpression},
-                {TokenType.LESS, ParseInfixExpression},
-                {TokenType.MORE, ParseInfixExpression},
-                {TokenType.LESS_EQUAL, ParseInfixExpression},
-                {TokenType.MORE_EQUAL, ParseInfixExpression},
-            };
-        }
-
-        public Lexer lex;
-        public Token curToken;
-        public Token peekToken;
-        public List<string> errors;
-
-        public Dictionary<TokenType, Func<IExpression?>> PrefixParseFunc;
         public IExpression ParseIdentifier() => new Identifier() { token = curToken, value = curToken.Literal };
         public IExpression? ParseNumerical()
         {
             if (double.TryParse(curToken.Literal, NumberStyles.Any, CultureInfo.InvariantCulture, out double value))
             {
-                NumericalLiteral literal = new NumericalLiteral()
+                var literal = new NumericalLiteral()
                 {
                     token = curToken,
                     value = value
@@ -60,86 +24,37 @@ namespace LuaSharp
         }
         public IExpression ParsePrefixExpression()
         {
-            PrefixExpression expression = new PrefixExpression()
+            var expression = new PrefixExpression()
             {
                 token = curToken,
                 operatorSign = curToken.Literal
             };
 
             NextToken();
-            expression.rightSide = ParseExpression((int)Precedence.Unary);
+            expression.rightSide = ParseExpression((int)PrecedenceValue.Unary);
             return expression;
         }
 
-        public Dictionary<TokenType, Func<IExpression, IExpression>> InfixParseFunc;
+
         public IExpression ParseInfixExpression(IExpression leftSide)
         {
-            InfixExpression expression = new InfixExpression()
+            var expression = new InfixExpression()
             {
                 token = curToken,
                 operatorSign = curToken.Literal,
                 leftSide = leftSide
             };
 
-            int precedence = CurPrecedence();
+            int precedence = Precedence.CurPrecedence(curToken);
             NextToken();
             expression.rightSide = ParseExpression(precedence);
 
             return expression;
         }
 
-        public enum Precedence : int
-        {
-            FuncCall,
-            Unary,          // not # -
-            Concatenation,  // ..
-            Multiplicative, // * / %
-            Additive,       // + -
-            Relational,     // < > <= >=
-            Equality,       // == ~=
-            AND,            // and
-            OR,             // 	or
-            Lowest
-        }
-
-        public Dictionary<TokenType, Precedence> precedenceMap = new Dictionary<TokenType, Precedence>()
-        {
-            {TokenType.ASTERISK, Precedence.Multiplicative}, {TokenType.SLASH, Precedence.Multiplicative},
-            {TokenType.PLUS, Precedence.Additive}, {TokenType.MINUS, Precedence.Additive},
-            {TokenType.LESS, Precedence.Relational}, {TokenType.MORE, Precedence.Relational},
-            {TokenType.LESS_EQUAL, Precedence.Relational}, {TokenType.MORE_EQUAL, Precedence.Relational},
-            {TokenType.EQUAL, Precedence.Equality}, {TokenType.NOT_EQUAL, Precedence.Equality}
-        };
-
-        public int PeekPrecedence()
-        {
-            if (precedenceMap.TryGetValue(peekToken.Type, out Precedence value))
-            {
-                return (int)value;
-            }
-
-            return (int)Precedence.Lowest;
-        }
-
-        public int CurPrecedence()
-        {
-            if (precedenceMap.TryGetValue(curToken.Type, out Precedence value))
-            {
-                return (int)value;
-            }
-
-            return (int)Precedence.Lowest;
-        }
-
-        public void NextToken()
-        {
-            curToken = peekToken;
-            peekToken = lex.NextToken();
-        }
-
         public AST ParseCode()
         {
-            AST ast = new AST();
+            var ast = new AST();
 
             while (curToken.Type != TokenType.EOF)
             {
@@ -179,10 +94,10 @@ namespace LuaSharp
 
         public ExpressionStatement ParseExpressionStatement()
         {
-            ExpressionStatement statement = new ExpressionStatement
+            var statement = new ExpressionStatement
             {
                 token = curToken,
-                expression = ParseExpression((int)Precedence.Lowest)
+                expression = ParseExpression((int)PrecedenceValue.Lowest)
             };
 
             return statement;
@@ -194,7 +109,8 @@ namespace LuaSharp
             {
                 var leftExpression = prefixFunc();
 
-                while (!IsPeekToken(TokenType.NEWLINE) && !IsPeekToken(TokenType.EOF) && precedence > PeekPrecedence())
+                while (!IsPeekToken(TokenType.NEWLINE) && !IsPeekToken(TokenType.EOF)
+                    && precedence > Precedence.PeekPrecedence(curToken))
                 {
                     if (InfixParseFunc.TryGetValue(peekToken.Type, out Func<IExpression, IExpression>? infixFunc))
                     {
@@ -213,7 +129,7 @@ namespace LuaSharp
 
         public AssignStatement? ParseAssignStatement()
         {
-            AssignStatement statement = new AssignStatement
+            var statement = new AssignStatement
             {
                 name = new Identifier() { token = curToken, value = curToken.Literal }
             };
@@ -237,7 +153,7 @@ namespace LuaSharp
 
         public ReturnStatement? ParseReturnStatement()
         {
-            ReturnStatement statement = new ReturnStatement()
+            var statement = new ReturnStatement()
             {
                 token = curToken
             };
@@ -250,6 +166,12 @@ namespace LuaSharp
             }
 
             return statement;
+        }
+
+        public void NextToken()
+        {
+            curToken = peekToken;
+            peekToken = lex.NextToken();
         }
 
         public bool IsCurToken(TokenType type)
