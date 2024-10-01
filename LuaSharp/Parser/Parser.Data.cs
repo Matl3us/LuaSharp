@@ -12,7 +12,7 @@
             PrefixParseFunc = new Dictionary<TokenType, Func<IExpression?>>()
             {
                 {TokenType.IDENTIFIER, ParseIdentifier},
-                {TokenType.NUMERICAL, ParseNumerical},
+                {TokenType.NUMERICAL, ParseNumeral},
                 {TokenType.MINUS, ParsePrefixExpression},
                 {TokenType.TILDE, ParsePrefixExpression},
                 {TokenType.NOT, ParsePrefixExpression},

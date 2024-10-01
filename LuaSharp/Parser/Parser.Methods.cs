@@ -1,27 +1,57 @@
 ﻿using LuaSharp.utils;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace LuaSharp.Parser
 {
     public partial class Parser
     {
         public IExpression ParseIdentifier() => new Identifier() { token = curToken, value = curToken.Literal };
-        public IExpression? ParseNumerical()
+
+        public IExpression? ParseNumeral()
         {
-            if (double.TryParse(curToken.Literal, NumberStyles.Any, CultureInfo.InvariantCulture, out double value))
+            string hexPattern = @"0[xX][0-9a-fA-F]+";
+            if (Regex.IsMatch(curToken.Literal, hexPattern))
             {
-                var literal = new NumericalLiteral()
+                return new IntegerNumeralLiteral()
                 {
                     token = curToken,
-                    value = value
+                    value = Convert.ToInt32(curToken.Literal, 16)
                 };
-                return literal;
             }
-            else
+
+
+            if (int.TryParse(curToken.Literal, NumberStyles.Any, CultureInfo.InvariantCulture, out int integerValue))
             {
-                return null;
+                if (curToken.Literal.Contains('.') || curToken.Literal.Contains('e') || curToken.Literal.Contains('E'))
+                {
+                    return new FloatNumeralLiteral()
+                    {
+                        token = curToken,
+                        value = integerValue
+                    };
+                }
+
+                return new IntegerNumeralLiteral()
+                {
+                    token = curToken,
+                    value = integerValue
+                };
             }
+
+            if (double.TryParse(curToken.Literal, NumberStyles.Any, CultureInfo.InvariantCulture, out double doubleValue))
+            {
+                return new FloatNumeralLiteral()
+                {
+                    token = curToken,
+                    value = doubleValue
+                };
+            }
+
+            AddNumeralParseError();
+            return null;
         }
+
         public IExpression ParsePrefixExpression()
         {
             var expression = new PrefixExpression()
@@ -207,6 +237,12 @@ namespace LuaSharp.Parser
         }
 
         public List<string> GetErrors() => errors;
+
+        public void AddNumeralParseError()
+        {
+            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvalid numeral value\n";
+            errors.Add(msg);
+        }
 
         public void AddPeekError(TokenType type)
         {

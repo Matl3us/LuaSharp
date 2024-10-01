@@ -30,7 +30,15 @@ namespace LuaSharp
         public string String() => value;
     }
 
-    public struct NumericalLiteral : IExpression
+    public struct IntegerNumeralLiteral : IExpression
+    {
+        public Token token;
+        public int value;
+        public string TokenLiteral() => token.Literal;
+        public string String() => token.Literal;
+    }
+
+    public struct FloatNumeralLiteral : IExpression
     {
         public Token token;
         public double value;
