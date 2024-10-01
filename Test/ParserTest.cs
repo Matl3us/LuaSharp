@@ -134,6 +134,47 @@ namespace Test
         }
 
         [Fact]
+        public void ShouldParseBooleanLiteral()
+        {
+            var input = new List<string>()
+            {
+               "true", "false"
+            };
+
+            var output = new[]
+            {
+                new { Type = TokenType.TRUE, Value = true },
+                new { Type = TokenType.FALSE, Value = false },
+            }.ToList();
+
+            for (int i = 0; i < input.Count; i++)
+            {
+                var statement = input[i];
+                byte[] byteArray = Encoding.ASCII.GetBytes(statement);
+                var stream = new MemoryStream(byteArray);
+                var lexer = new Lexer(new StreamReader(stream), "");
+
+                var parser = new Parser(lexer);
+                var ast = parser.ParseCode();
+                var errors = parser.GetErrors();
+
+                Assert.Empty(errors);
+                Assert.Single(ast.statements);
+
+                var expression = ast.statements[0];
+
+                Assert.IsType<ExpressionStatement>(expression);
+                var castedExpression = (ExpressionStatement)expression;
+                Assert.Equal(castedExpression.token.Type, output[i].Type);
+                Assert.NotNull(castedExpression.expression);
+
+                Assert.IsType<BooleanLiteral>(castedExpression.expression);
+                var booleanExpression = (BooleanLiteral)castedExpression.expression;
+                Assert.Equal(booleanExpression.value, output[i].Value);
+            }
+        }
+
+        [Fact]
         public void ShouldParsePrefixStatements()
         {
             var input = new List<string>()

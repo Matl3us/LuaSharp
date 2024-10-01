@@ -46,6 +46,14 @@ namespace LuaSharp
         public string String() => token.Literal;
     }
 
+    public struct BooleanLiteral : IExpression
+    {
+        public Token token;
+        public bool value;
+        public string TokenLiteral() => token.Literal;
+        public string String() => token.Literal;
+    }
+
     public struct PrefixExpression : IExpression
     {
         public Token token;

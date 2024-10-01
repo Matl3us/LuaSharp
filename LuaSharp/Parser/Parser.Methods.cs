@@ -52,6 +52,21 @@ namespace LuaSharp.Parser
             return null;
         }
 
+        public IExpression? ParseBoolean()
+        {
+            if (bool.TryParse(curToken.Literal, out bool value))
+            {
+                return new BooleanLiteral()
+                {
+                    token = curToken,
+                    value = value
+                };
+            }
+
+            AddBooleanParseError();
+            return null;
+        }
+
         public IExpression ParsePrefixExpression()
         {
             var expression = new PrefixExpression()
@@ -241,6 +256,12 @@ namespace LuaSharp.Parser
         public void AddNumeralParseError()
         {
             string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvalid numeral value\n";
+            errors.Add(msg);
+        }
+
+        public void AddBooleanParseError()
+        {
+            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvalid boolean value\n";
             errors.Add(msg);
         }
 

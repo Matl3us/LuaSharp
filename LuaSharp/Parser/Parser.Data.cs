@@ -13,6 +13,8 @@
             {
                 {TokenType.IDENTIFIER, ParseIdentifier},
                 {TokenType.NUMERICAL, ParseNumeral},
+                {TokenType.TRUE, ParseBoolean},
+                {TokenType.FALSE, ParseBoolean},
                 {TokenType.MINUS, ParsePrefixExpression},
                 {TokenType.TILDE, ParsePrefixExpression},
                 {TokenType.NOT, ParsePrefixExpression},
