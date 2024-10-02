@@ -14,7 +14,7 @@ namespace Test
                "3", "5", "345",
             };
 
-            var output = new[]
+            var expectedOutput = new[]
             {
                 new { Type = TokenType.NUMERICAL, Value = 3 },
                 new { Type = TokenType.NUMERICAL, Value = 5 },
@@ -39,12 +39,12 @@ namespace Test
 
                 Assert.IsType<ExpressionStatement>(expression);
                 var castedExpression = (ExpressionStatement)expression;
-                Assert.Equal(castedExpression.token.Type, output[i].Type);
+                Assert.Equal(expectedOutput[i].Type, castedExpression.token.Type);
                 Assert.NotNull(castedExpression.expression);
 
                 Assert.IsType<IntegerNumeralLiteral>(castedExpression.expression);
                 var integerExpression = (IntegerNumeralLiteral)castedExpression.expression;
-                Assert.Equal(integerExpression.value, output[i].Value);
+                Assert.Equal(expectedOutput[i].Value, integerExpression.value);
             }
         }
 
@@ -56,7 +56,7 @@ namespace Test
                "3.0", "3.1416", "314.16e-2", "0.31416E1", "34e1"
             };
 
-            var output = new[]
+            var expectedOutput = new[]
             {
                 new { Type = TokenType.NUMERICAL, Value = 3.0 },
                 new { Type = TokenType.NUMERICAL, Value = 3.1416 },
@@ -83,12 +83,12 @@ namespace Test
 
                 Assert.IsType<ExpressionStatement>(expression);
                 var castedExpression = (ExpressionStatement)expression;
-                Assert.Equal(castedExpression.token.Type, output[i].Type);
+                Assert.Equal(expectedOutput[i].Type, castedExpression.token.Type);
                 Assert.NotNull(castedExpression.expression);
 
                 Assert.IsType<FloatNumeralLiteral>(castedExpression.expression);
                 var floatExpression = (FloatNumeralLiteral)castedExpression.expression;
-                Assert.Equal(floatExpression.value, output[i].Value);
+                Assert.Equal(expectedOutput[i].Value, floatExpression.value);
             }
         }
 
@@ -100,7 +100,7 @@ namespace Test
                "0xff", "0xBEBADA"
             };
 
-            var output = new[]
+            var expectedOutput = new[]
             {
                 new { Type = TokenType.NUMERICAL, Value = 255 },
                 new { Type = TokenType.NUMERICAL, Value = 12499674 },
@@ -124,12 +124,12 @@ namespace Test
 
                 Assert.IsType<ExpressionStatement>(expression);
                 var castedExpression = (ExpressionStatement)expression;
-                Assert.Equal(castedExpression.token.Type, output[i].Type);
+                Assert.Equal(expectedOutput[i].Type, castedExpression.token.Type);
                 Assert.NotNull(castedExpression.expression);
 
                 Assert.IsType<IntegerNumeralLiteral>(castedExpression.expression);
                 var integerExpression = (IntegerNumeralLiteral)castedExpression.expression;
-                Assert.Equal(integerExpression.value, output[i].Value);
+                Assert.Equal(expectedOutput[i].Value, integerExpression.value);
             }
         }
 
@@ -141,7 +141,7 @@ namespace Test
                "true", "false"
             };
 
-            var output = new[]
+            var expectedOutput = new[]
             {
                 new { Type = TokenType.TRUE, Value = true },
                 new { Type = TokenType.FALSE, Value = false },
@@ -165,12 +165,12 @@ namespace Test
 
                 Assert.IsType<ExpressionStatement>(expression);
                 var castedExpression = (ExpressionStatement)expression;
-                Assert.Equal(castedExpression.token.Type, output[i].Type);
+                Assert.Equal(expectedOutput[i].Type, castedExpression.token.Type);
                 Assert.NotNull(castedExpression.expression);
 
                 Assert.IsType<BooleanLiteral>(castedExpression.expression);
                 var booleanExpression = (BooleanLiteral)castedExpression.expression;
-                Assert.Equal(booleanExpression.value, output[i].Value);
+                Assert.Equal(expectedOutput[i].Value, booleanExpression.value);
             }
         }
 
@@ -182,7 +182,7 @@ namespace Test
                "-x", "~y", "not z", "#a"
             };
 
-            var output = new[]
+            var expectedOutput = new[]
             {
                 new { Type = TokenType.MINUS, String = "[- x]" },
                 new { Type = TokenType.TILDE, String = "[~ y]" },
@@ -207,9 +207,9 @@ namespace Test
                 var expression = ast.statements[0];
                 Assert.IsType<ExpressionStatement>(expression);
                 var castedExpression = (ExpressionStatement)expression;
-                Assert.Equal(castedExpression.token.Type, output[i].Type);
+                Assert.Equal(expectedOutput[i].Type, castedExpression.token.Type);
                 Assert.NotNull(castedExpression.expression);
-                Assert.Equal(castedExpression.expression.String(), output[i].String);
+                Assert.Equal(expectedOutput[i].String, castedExpression.expression.String());
             }
         }
 
@@ -231,7 +231,7 @@ namespace Test
                 "a or b", "b and a"
             };
 
-            var output = new[]
+            var expectedOutput = new[]
             {
                 new { Type = TokenType.PLUS, String = "[x + 2]" },
                 new { Type = TokenType.MINUS, String = "[2 - x]" },
@@ -277,8 +277,60 @@ namespace Test
                 var castedExpressionStatement = (ExpressionStatement)expression;
                 Assert.NotNull(castedExpressionStatement.expression);
                 var castedExpression = (InfixExpression)castedExpressionStatement.expression;
-                Assert.Equal(castedExpression.token.Type, output[i].Type);
-                Assert.Equal(castedExpressionStatement.expression.String(), output[i].String);
+                Assert.Equal(expectedOutput[i].Type, castedExpression.token.Type);
+                Assert.Equal(expectedOutput[i].String, castedExpressionStatement.expression.String());
+            }
+        }
+
+        [Fact]
+        public void ShouldParseGroupedStatements()
+        {
+            var input = new List<string>()
+            {
+                "1 + 2 * 3 / 4 - 5",
+                "(1 + 2) * (3 - 4) / (5 + 6)",
+                "1 + (2 * (3 + (4 / 5)))",
+                "-(1 + 2) * -(3 / 4)",
+                "(2 ^ 3) ^ (1 / 2)",
+                "(1 + 2 > 3) and (4 / 2 == 2)",
+                "not (1 > 2) or (3 == 3 and 4 <= 5)",
+                "(1 & 2) | (3 ~ 4)",
+                "1 < 2 and 3 > 4 or 5 == 5",
+            };
+
+            var expectedOutput = new List<string>()
+            {
+                "[[1 + [[2 * 3] / 4]] - 5]",
+                "[[[1 + 2] * [3 - 4]] / [5 + 6]]",
+                "[1 + [2 * [3 + [4 / 5]]]]",
+                "[[- [1 + 2]] * [- [3 / 4]]]",
+                "[[2 ^ 3] ^ [1 / 2]]",
+                "[[[1 + 2] > 3] and [[4 / 2] == 2]]",
+                "[[not [1 > 2]] or [[3 == 3] and [4 <= 5]]]",
+                "[[1 & 2] | [3 ~ 4]]",
+                "[[[1 < 2] and [3 > 4]] or [5 == 5]]",
+            };
+
+            for (int i = 0; i < input.Count; i++)
+            {
+                var statement = input[i];
+                byte[] byteArray = Encoding.ASCII.GetBytes(statement);
+                var stream = new MemoryStream(byteArray);
+                var lexer = new Lexer(new StreamReader(stream), "");
+
+                var parser = new Parser(lexer);
+                var ast = parser.ParseCode();
+                var errors = parser.GetErrors();
+
+                Assert.Empty(errors);
+                Assert.Single(ast.statements);
+
+                var expression = ast.statements[0];
+                Assert.IsType<ExpressionStatement>(expression);
+                var castedExpressionStatement = (ExpressionStatement)expression;
+                Assert.NotNull(castedExpressionStatement.expression);
+                var castedExpression = (InfixExpression)castedExpressionStatement.expression;
+                Assert.Equal(expectedOutput[i], castedExpression.String());
             }
         }
     }

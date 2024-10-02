@@ -8,7 +8,7 @@
         Equality,        // == ~=
         Relational,      // < > <= >=
         BitwiseOr,       // |
-        BitwiseXor,      // ~
+        BitwiseNot,      // ~
         BitwiseAnd,      // &
         Shift,           // << >>
         Concatenation,   // ..
@@ -23,11 +23,17 @@
     {
         private static readonly Dictionary<TokenType, PrecedenceValue> precedenceMap = new()
         {
-            {TokenType.ASTERISK, PrecedenceValue.Multiplicative}, {TokenType.SLASH, PrecedenceValue.Multiplicative},
-            {TokenType.PLUS, PrecedenceValue.Additive}, {TokenType.MINUS, PrecedenceValue.Additive},
+            {TokenType.OR, PrecedenceValue.OR}, {TokenType.AND, PrecedenceValue.AND},
+            {TokenType.EQUAL, PrecedenceValue.Equality}, {TokenType.NOT_EQUAL, PrecedenceValue.Equality},
             {TokenType.LESS, PrecedenceValue.Relational}, {TokenType.MORE, PrecedenceValue.Relational},
             {TokenType.LESS_EQUAL, PrecedenceValue.Relational}, {TokenType.MORE_EQUAL, PrecedenceValue.Relational},
-            {TokenType.EQUAL, PrecedenceValue.Equality}, {TokenType.NOT_EQUAL, PrecedenceValue.Equality}
+            {TokenType.B_OR, PrecedenceValue.BitwiseOr}, {TokenType.TILDE, PrecedenceValue.BitwiseNot},
+            {TokenType.B_AND, PrecedenceValue.BitwiseAnd}, {TokenType.B_RSHIFT, PrecedenceValue.Shift},
+            {TokenType.B_LSHIFT, PrecedenceValue.Shift}, {TokenType.CONCAT, PrecedenceValue.Concatenation},
+            {TokenType.PLUS, PrecedenceValue.Additive}, {TokenType.MINUS, PrecedenceValue.Additive},
+            {TokenType.ASTERISK, PrecedenceValue.Multiplicative}, {TokenType.SLASH, PrecedenceValue.Multiplicative},
+            {TokenType.F_DIV, PrecedenceValue.Multiplicative}, {TokenType.PERCENTAGE, PrecedenceValue.Multiplicative},
+            {TokenType.CARET, PrecedenceValue.Exponentiation}, {TokenType.L_PARENT, PrecedenceValue.FuncCall}
         };
 
         public static int PeekPrecedence(Token token)

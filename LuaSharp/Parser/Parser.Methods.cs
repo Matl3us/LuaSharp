@@ -97,6 +97,19 @@ namespace LuaSharp.Parser
             return expression;
         }
 
+        public IExpression? ParseGroupedExpression()
+        {
+            NextToken();
+            var expression = ParseExpression((int)PrecedenceValue.Lowest);
+
+            if (!CheckNextToken(TokenType.R_PARENT))
+            {
+                return null;
+            }
+
+            return expression;
+        }
+
         public AST ParseCode()
         {
             var ast = new AST();
@@ -150,26 +163,31 @@ namespace LuaSharp.Parser
 
         public IExpression? ParseExpression(int precedence)
         {
-            if (PrefixParseFunc.TryGetValue(curToken.Type, out Func<IExpression?>? prefixFunc))
+            if (!PrefixParseFunc.TryGetValue(curToken.Type, out Func<IExpression?>? prefixFunc))
             {
-                var leftExpression = prefixFunc();
-
-                while (!IsPeekToken(TokenType.NEWLINE) && !IsPeekToken(TokenType.EOF)
-                    && precedence >= Precedence.PeekPrecedence(curToken))
-                {
-                    if (InfixParseFunc.TryGetValue(peekToken.Type, out Func<IExpression, IExpression>? infixFunc))
-                    {
-                        NextToken();
-                        if (leftExpression != null)
-                        {
-                            leftExpression = infixFunc(leftExpression);
-                        }
-                    }
-                }
-                return leftExpression;
+                AddPrefixParseError(curToken.Type);
+                return null;
             }
-            AddPrefixParseError(curToken.Type);
-            return null;
+
+            var leftExpression = prefixFunc();
+
+            while (!IsPeekToken(TokenType.NEWLINE) && !IsPeekToken(TokenType.EOF)
+                    && precedence < Precedence.PeekPrecedence(peekToken))
+            {
+                if (!InfixParseFunc.TryGetValue(peekToken.Type, out Func<IExpression, IExpression>? infixFunc))
+                {
+                    return leftExpression;
+                }
+
+                NextToken();
+
+                if (leftExpression != null)
+                {
+                    leftExpression = infixFunc(leftExpression);
+                }
+            }
+
+            return leftExpression;
         }
 
         public AssignStatement? ParseAssignStatement()
@@ -262,6 +280,12 @@ namespace LuaSharp.Parser
         public void AddBooleanParseError()
         {
             string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvalid boolean value\n";
+            errors.Add(msg);
+        }
+
+        public void AddGroupedExpressionParseError()
+        {
+            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nRight parenthesis missing\n";
             errors.Add(msg);
         }
 

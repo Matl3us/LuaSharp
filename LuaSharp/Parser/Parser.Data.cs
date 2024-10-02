@@ -15,6 +15,7 @@
                 {TokenType.NUMERICAL, ParseNumeral},
                 {TokenType.TRUE, ParseBoolean},
                 {TokenType.FALSE, ParseBoolean},
+                {TokenType.L_PARENT, ParseGroupedExpression},
                 {TokenType.MINUS, ParsePrefixExpression},
                 {TokenType.TILDE, ParsePrefixExpression},
                 {TokenType.NOT, ParsePrefixExpression},
