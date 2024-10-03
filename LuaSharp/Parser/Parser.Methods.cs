@@ -103,6 +103,7 @@ namespace LuaSharp.Parser
 
             if (!CheckAnPushToken(TokenType.R_PARENT))
             {
+                AddGroupedExpressionParseError();
                 return null;
             }
 
@@ -239,11 +240,16 @@ namespace LuaSharp.Parser
                 token = curToken
             };
 
-            // TODO: Add expression parsing
-            // For now skip to the end of the line.
-            while (!IsCurToken(TokenType.NEWLINE) && !IsCurToken(TokenType.EOF))
+            NextToken();
+            var expression = ParseExpression((int)PrecedenceValue.Lowest);
+            if (expression != null)
             {
-                NextToken();
+                statement.expression = expression;
+            }
+            else
+            {
+                AddReturnStatementParseError();
+                return null;
             }
 
             return statement;
@@ -308,6 +314,12 @@ namespace LuaSharp.Parser
         }
 
         public void AddAssignStatementParseError()
+        {
+            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvaild assignment statement\n";
+            errors.Add(msg);
+        }
+
+        public void AddReturnStatementParseError()
         {
             string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvaild assignment statement\n";
             errors.Add(msg);

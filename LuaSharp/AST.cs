@@ -137,7 +137,9 @@ namespace LuaSharp
     public struct ReturnStatement : IStatement
     {
         public Token token;
+        public IExpression expression;
+
         public string TokenLiteral() => token.Literal;
-        public string String() => $"{TokenLiteral()}";
+        public string String() => $"{TokenLiteral()} {expression.String()}";
     }
 }
