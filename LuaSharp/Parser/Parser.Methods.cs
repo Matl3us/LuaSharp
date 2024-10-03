@@ -80,7 +80,6 @@ namespace LuaSharp.Parser
             return expression;
         }
 
-
         public IExpression ParseInfixExpression(IExpression leftSide)
         {
             var expression = new InfixExpression()
@@ -102,7 +101,7 @@ namespace LuaSharp.Parser
             NextToken();
             var expression = ParseExpression((int)PrecedenceValue.Lowest);
 
-            if (!CheckNextToken(TokenType.R_PARENT))
+            if (!CheckAnPushToken(TokenType.R_PARENT))
             {
                 return null;
             }
@@ -134,12 +133,14 @@ namespace LuaSharp.Parser
                 case TokenType.IDENTIFIER:
                     if (peekToken.Type == TokenType.ASSIGN)
                     {
-                        return ParseAssignStatement();
+                        return ParseAssignStatement(false);
                     }
                     else
                     {
                         return ParseExpressionStatement();
                     }
+                case TokenType.LOCAL:
+                    return ParseLocalAssignStatement();
                 case TokenType.RETURN:
                     return ParseReturnStatement();
                 case TokenType.NEWLINE:
@@ -190,28 +191,45 @@ namespace LuaSharp.Parser
             return leftExpression;
         }
 
-        public AssignStatement? ParseAssignStatement()
+        public AssignStatement? ParseAssignStatement(bool isLocal)
         {
             var statement = new AssignStatement
             {
-                name = new Identifier() { token = curToken, value = curToken.Literal }
+                name = new Identifier() { token = curToken, value = curToken.Literal },
+                isLocal = isLocal
             };
 
-            if (!CheckNextToken(TokenType.ASSIGN))
+            if (!CheckAnPushToken(TokenType.ASSIGN))
             {
+                AddAssignStatementParseError();
                 return null;
             }
 
             statement.token = curToken;
-
-            // TODO: Add expression parsing
-            // For now skip to the end of the line.
-            while (!IsCurToken(TokenType.NEWLINE) && !IsCurToken(TokenType.EOF))
+            NextToken();
+            var expression = ParseExpression((int)PrecedenceValue.Lowest);
+            if (expression != null)
             {
-                NextToken();
+                statement.expression = expression;
+            }
+            else
+            {
+                AddAssignStatementParseError();
+                return null;
             }
 
             return statement;
+        }
+
+        public AssignStatement? ParseLocalAssignStatement()
+        {
+            if (!CheckAnPushToken(TokenType.IDENTIFIER))
+            {
+                AddAssignStatementParseError();
+                return null;
+            }
+
+            return ParseAssignStatement(true);
         }
 
         public ReturnStatement? ParseReturnStatement()
@@ -247,7 +265,7 @@ namespace LuaSharp.Parser
             return type == peekToken.Type;
         }
 
-        public bool CheckNextToken(TokenType type)
+        public bool CheckAnPushToken(TokenType type)
         {
             if (IsPeekToken(type))
             {
@@ -286,6 +304,12 @@ namespace LuaSharp.Parser
         public void AddGroupedExpressionParseError()
         {
             string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nRight parenthesis missing\n";
+            errors.Add(msg);
+        }
+
+        public void AddAssignStatementParseError()
+        {
+            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvaild assignment statement\n";
             errors.Add(msg);
         }
 

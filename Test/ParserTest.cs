@@ -333,5 +333,49 @@ namespace Test
                 Assert.Equal(expectedOutput[i], castedExpression.String());
             }
         }
+
+        [Fact]
+        public void ShouldParseAssignStatements()
+        {
+            var input = new List<string>()
+            {
+                "a = 1 + 2 * 3",
+                "a = (1 + 2) * 3",
+                "local a = 1",
+                "local x = (1 + 2) * (3 - 4)",
+                "local a = 2 ^ 3",
+                "x = not 1 > 2 or 3 == 3",
+            };
+
+            var expectedOutput = new List<string>()
+            {
+                "a = [1 + [2 * 3]]",
+                "a = [[1 + 2] * 3]",
+                "local a = 1",
+                "local x = [[1 + 2] * [3 - 4]]",
+                "local a = [2 ^ 3]",
+                "x = [[[not 1] > 2] or [3 == 3]]",
+            };
+
+            for (int i = 0; i < input.Count; i++)
+            {
+                var statement = input[i];
+                byte[] byteArray = Encoding.ASCII.GetBytes(statement);
+                var stream = new MemoryStream(byteArray);
+                var lexer = new Lexer(new StreamReader(stream), "");
+
+                var parser = new Parser(lexer);
+                var ast = parser.ParseCode();
+                var errors = parser.GetErrors();
+
+                Assert.Empty(errors);
+                Assert.Single(ast.statements);
+
+                var expression = ast.statements[0];
+                Assert.IsType<AssignStatement>(expression);
+                var castedExpressionStatement = (AssignStatement)expression;
+                Assert.Equal(expectedOutput[i], castedExpressionStatement.String());
+            }
+        }
     }
 }

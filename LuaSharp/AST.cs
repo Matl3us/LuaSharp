@@ -117,9 +117,21 @@ namespace LuaSharp
     {
         public Token token;
         public Identifier name;
+        public IExpression expression;
+        public bool isLocal;
 
         public string TokenLiteral() => token.Literal;
-        public string String() => $"{name.String()} {TokenLiteral()}";
+        public string String()
+        {
+            if (isLocal)
+            {
+                return $"local {name.String()} {TokenLiteral()} {expression.String()}";
+            }
+            else
+            {
+                return $"{name.String()} {TokenLiteral()} {expression.String()}";
+            }
+        }
     }
 
     public struct ReturnStatement : IStatement
