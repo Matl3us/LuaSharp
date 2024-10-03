@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace LuaSharp
 {
     public class AST
@@ -113,6 +115,22 @@ namespace LuaSharp
         }
     }
 
+    public struct BlockStatement() : IStatement
+    {
+        public List<IStatement> statements = [];
+
+        public string TokenLiteral() => "";
+        public string String()
+        {
+            var blockString = new StringBuilder();
+            foreach (var statement in statements)
+            {
+                blockString.Append(statement.String());
+            }
+            return blockString.ToString();
+        }
+    }
+
     public struct AssignStatement : IStatement
     {
         public Token token;
@@ -141,5 +159,25 @@ namespace LuaSharp
 
         public string TokenLiteral() => token.Literal;
         public string String() => $"{TokenLiteral()} {expression.String()}";
+    }
+
+    public struct IfStatement : IStatement
+    {
+        public IExpression condition;
+        public BlockStatement consequence;
+        public BlockStatement? alternative;
+
+        public string TokenLiteral()
+        {
+            var ifString = new StringBuilder($"if {condition.String()} then [{consequence.String()}] ");
+            if (alternative != null)
+            {
+                var alt = (BlockStatement)alternative;
+                ifString.Append($"else [{alt.String()}] ");
+            }
+            ifString.Append("end");
+            return ifString.ToString();
+        }
+        public string String() => $"{TokenLiteral()}";
     }
 }

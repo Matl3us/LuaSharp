@@ -142,6 +142,8 @@ namespace LuaSharp.Parser
                     }
                 case TokenType.LOCAL:
                     return ParseLocalAssignStatement();
+                case TokenType.IF:
+                    return ParseIfStatement();
                 case TokenType.RETURN:
                     return ParseReturnStatement();
                 case TokenType.NEWLINE:
@@ -190,6 +192,29 @@ namespace LuaSharp.Parser
             }
 
             return leftExpression;
+        }
+
+        public BlockStatement? ParseBlockStatement()
+        {
+            var blockStatement = new BlockStatement();
+            NextToken();
+            while (!BlockEndings.Contains(curToken.Type) && curToken.Type != TokenType.EOF)
+            {
+                var statement = ParseStatement();
+                if (statement != null)
+                {
+                    blockStatement.statements.Add(statement);
+                }
+                NextToken();
+            }
+
+            if (curToken.Type == TokenType.EOF)
+            {
+                AddBlockStatementParseError();
+                return null;
+            }
+
+            return blockStatement;
         }
 
         public AssignStatement? ParseAssignStatement(bool isLocal)
@@ -255,6 +280,63 @@ namespace LuaSharp.Parser
             return statement;
         }
 
+        public IfStatement? ParseIfStatement()
+        {
+            var statement = new IfStatement();
+            if (!CheckAnPushToken(TokenType.L_PARENT))
+            {
+                AddIfStatementParseError();
+                return null;
+            }
+
+            var condition = ParseExpression((int)PrecedenceValue.Lowest);
+            if (!IsCurToken(TokenType.R_PARENT) || condition == null)
+            {
+                AddIfStatementParseError();
+                return null;
+            }
+            statement.condition = condition;
+
+            if (!CheckAnPushToken(TokenType.THEN))
+            {
+                AddIfStatementParseError();
+                return null;
+            }
+
+            var consequence = ParseBlockStatement();
+            if (consequence == null)
+            {
+                AddIfStatementParseError();
+                return null;
+            }
+            statement.consequence = (BlockStatement)consequence;
+
+
+            if (IsCurToken(TokenType.ELSE))
+            {
+                var alternative = ParseBlockStatement();
+                if (IsCurToken(TokenType.END))
+                {
+                    statement.alternative = alternative;
+                    return statement;
+                }
+
+                AddIfStatementParseError();
+                return null;
+            }
+            else if (IsCurToken(TokenType.END))
+            {
+                statement.alternative = null;
+                return statement;
+            }
+            else
+            {
+                AddIfStatementParseError();
+                return null;
+            }
+
+        }
+
         public void NextToken()
         {
             curToken = peekToken;
@@ -313,6 +395,12 @@ namespace LuaSharp.Parser
             errors.Add(msg);
         }
 
+        public void AddBlockStatementParseError()
+        {
+            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nBlock ending missing\n";
+            errors.Add(msg);
+        }
+
         public void AddAssignStatementParseError()
         {
             string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvaild assignment statement\n";
@@ -322,6 +410,12 @@ namespace LuaSharp.Parser
         public void AddReturnStatementParseError()
         {
             string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvaild assignment statement\n";
+            errors.Add(msg);
+        }
+
+        public void AddIfStatementParseError()
+        {
+            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvalid format of If statement\n";
             errors.Add(msg);
         }
 

@@ -45,6 +45,11 @@
                 {TokenType.AND, ParseInfixExpression},
                 {TokenType.OR, ParseInfixExpression},
             };
+
+            BlockEndings =
+            [
+                TokenType.END, TokenType.ELSEIF, TokenType.ELSE
+            ];
         }
 
         private readonly Lexer lex;
@@ -54,5 +59,6 @@
 
         private readonly Dictionary<TokenType, Func<IExpression?>> PrefixParseFunc;
         private readonly Dictionary<TokenType, Func<IExpression, IExpression>> InfixParseFunc;
+        private readonly List<TokenType> BlockEndings;
     }
 }
