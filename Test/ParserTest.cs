@@ -423,12 +423,12 @@ namespace Test
         {
             var input = new List<string>()
             {
-                "if (a > 5) then a = 5\n else b = 10\n end",
+                "if a > 5 then a = 5\n else b = 10\n end",
                 "if (x == 1) then y = 2\n end",
-                "if (a == b and c ~= d) then e = f + 1\n else e = f - 1\n end",
-                "if (not (x < 10)) then y = 0\n else z = 1\n end",
-                "if (a == b) then if (c > d) then e = f\n else g = h\n end\n else i = j\n end",
-                "if (a or b and c) then d = 1\n else d = 2\n end",
+                "if a == b and c ~= d then e = f + 1\n else e = f - 1\n end",
+                "if not (x < 10) then y = 0\n else z = 1\n end",
+                "if a == b then if (c > d) then e = f\n else g = h\n end\n else i = j\n end",
+                "if ((a or b) and c) then d = 1\n else d = 2\n end",
             };
 
             var expectedOutput = new List<string>()
@@ -438,7 +438,7 @@ namespace Test
                 "if [[a == b] and [c ~= d]] then [e = [f + 1]] else [e = [f - 1]] end",
                 "if [not [x < 10]] then [y = 0] else [z = 1] end",
                 "if [a == b] then [if [c > d] then [e = f] else [g = h] end] else [i = j] end",
-                "if [a or [b and c]] then [d = 1] else [d = 2] end",
+                "if [[a or b] and c] then [d = 1] else [d = 2] end",
             };
 
             for (int i = 0; i < input.Count; i++)

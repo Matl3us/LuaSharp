@@ -283,25 +283,15 @@ namespace LuaSharp.Parser
         public IfStatement? ParseIfStatement()
         {
             var statement = new IfStatement();
-            if (!CheckAnPushToken(TokenType.L_PARENT))
-            {
-                AddIfStatementParseError();
-                return null;
-            }
+            NextToken();
 
             var condition = ParseExpression((int)PrecedenceValue.Lowest);
-            if (!IsCurToken(TokenType.R_PARENT) || condition == null)
+            if (!CheckAnPushToken(TokenType.THEN) || condition == null)
             {
                 AddIfStatementParseError();
                 return null;
             }
             statement.condition = condition;
-
-            if (!CheckAnPushToken(TokenType.THEN))
-            {
-                AddIfStatementParseError();
-                return null;
-            }
 
             var consequence = ParseBlockStatement();
             if (consequence == null)
