@@ -423,12 +423,12 @@ namespace Test
         {
             var input = new List<string>()
             {
-                "if a > 5 then a = 5\n else b = 10\n end",
-                "if (x == 1) then y = 2\n end",
-                "if a == b and c ~= d then e = f + 1\n else e = f - 1\n end",
-                "if not (x < 10) then y = 0\n else z = 1\n end",
-                "if a == b then if (c > d) then e = f\n else g = h\n end\n else i = j\n end",
-                "if ((a or b) and c) then d = 1\n else d = 2\n end",
+                "if a > 5 then\n a = 5\n else b = 10\n end",
+                "if (x == 1) then\n y = 2\n end",
+                "if a == b and c ~= d then\n e = f + 1\n else e = f - 1\n end",
+                "if not (x < 10) then\n y = 0\n else z = 1\n end",
+                "if a == b then if (c > d) then\n e = f\n else g = h\n end\n else i = j\n end",
+                "if ((a or b) and c) then\n d = 1\n else d = 2\n end",
             };
 
             var expectedOutput = new List<string>()
@@ -459,6 +459,47 @@ namespace Test
                 Assert.IsType<IfStatement>(expression);
                 var castedIfStatement = (IfStatement)expression;
                 Assert.Equal(expectedOutput[i], castedIfStatement.String());
+            }
+        }
+
+        [Fact]
+        public void ShouldParseWhileStatements()
+        {
+            var input = new List<string>()
+            {
+                "while a > 5 do\n a = 5\n b = 10\n end",
+                "while (x == 1) do\n y = 2\n end",
+                "while z <= 0 do\n z = z + 1\n end",
+                "while (a < 100 and b > 50) do\n a = a + 10\n b = b - 5\n end"
+
+            };
+
+            var expectedOutput = new List<string>()
+            {
+                "while [a > 5] do [a = 5][b = 10] end",
+                "while [x == 1] do [y = 2] end",
+                "while [z <= 0] do [z = [z + 1]] end",
+                "while [[a < 100] and [b > 50]] do [a = [a + 10]][b = [b - 5]] end"
+            };
+
+            for (int i = 0; i < input.Count; i++)
+            {
+                var statement = input[i];
+                byte[] byteArray = Encoding.ASCII.GetBytes(statement);
+                var stream = new MemoryStream(byteArray);
+                var lexer = new Lexer(new StreamReader(stream), "");
+
+                var parser = new Parser(lexer);
+                var ast = parser.ParseCode();
+                var errors = parser.GetErrors();
+
+                Assert.Empty(errors);
+                Assert.Single(ast.statements);
+
+                var expression = ast.statements[0];
+                Assert.IsType<WhileStatement>(expression);
+                var castedWhileStatement = (WhileStatement)expression;
+                Assert.Equal(expectedOutput[i], castedWhileStatement.String());
             }
         }
     }

@@ -125,7 +125,7 @@ namespace LuaSharp
             var blockString = new StringBuilder();
             foreach (var statement in statements)
             {
-                blockString.Append(statement.String());
+                blockString.Append($"[{statement.String()}]");
             }
             return blockString.ToString();
         }
@@ -167,17 +167,29 @@ namespace LuaSharp
         public BlockStatement consequence;
         public BlockStatement? alternative;
 
-        public string TokenLiteral()
+        public string TokenLiteral() => "if";
+        public string String()
         {
-            var ifString = new StringBuilder($"if {condition.String()} then [{consequence.String()}] ");
+            var ifString = new StringBuilder($"{TokenLiteral()} {condition.String()} then {consequence.String()} ");
             if (alternative != null)
             {
                 var alt = (BlockStatement)alternative;
-                ifString.Append($"else [{alt.String()}] ");
+                ifString.Append($"else {alt.String()} ");
             }
             ifString.Append("end");
             return ifString.ToString();
         }
-        public string String() => $"{TokenLiteral()}";
+    }
+
+    public struct WhileStatement : IStatement
+    {
+        public IExpression condition;
+        public BlockStatement body;
+
+        public string TokenLiteral() => "while";
+        public string String()
+        {
+            return $"{TokenLiteral()} {condition.String()} do {body.String()} end";
+        }
     }
 }

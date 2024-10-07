@@ -144,6 +144,8 @@ namespace LuaSharp.Parser
                     return ParseLocalAssignStatement();
                 case TokenType.IF:
                     return ParseIfStatement();
+                case TokenType.WHILE:
+                    return ParseWhileStatement();
                 case TokenType.RETURN:
                     return ParseReturnStatement();
                 case TokenType.NEWLINE:
@@ -296,7 +298,7 @@ namespace LuaSharp.Parser
             var consequence = ParseBlockStatement();
             if (consequence == null)
             {
-                AddIfStatementParseError();
+                AddBlockStatementParseError();
                 return null;
             }
             statement.consequence = (BlockStatement)consequence;
@@ -325,6 +327,38 @@ namespace LuaSharp.Parser
                 return null;
             }
 
+        }
+
+        public WhileStatement? ParseWhileStatement()
+        {
+            var statement = new WhileStatement();
+            NextToken();
+
+            var condition = ParseExpression((int)PrecedenceValue.Lowest);
+            if (!CheckAnPushToken(TokenType.DO) || condition == null)
+            {
+                AddWhileStatementParseError();
+                return null;
+            }
+            statement.condition = condition;
+
+            var body = ParseBlockStatement();
+            if (body == null)
+            {
+                AddBlockStatementParseError();
+                return null;
+            }
+            statement.body = (BlockStatement)body;
+
+            if (IsCurToken(TokenType.END))
+            {
+                return statement;
+            }
+            else
+            {
+                AddWhileStatementParseError();
+                return null;
+            }
         }
 
         public void NextToken()
@@ -406,6 +440,12 @@ namespace LuaSharp.Parser
         public void AddIfStatementParseError()
         {
             string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvalid format of If statement\n";
+            errors.Add(msg);
+        }
+
+        public void AddWhileStatementParseError()
+        {
+            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvalid format of while statement\n";
             errors.Add(msg);
         }
 
