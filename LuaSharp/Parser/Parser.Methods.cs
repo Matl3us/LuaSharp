@@ -146,6 +146,8 @@ namespace LuaSharp.Parser
                     return ParseIfStatement();
                 case TokenType.WHILE:
                     return ParseWhileStatement();
+                case TokenType.FOR:
+                    return ParseForStatement();
                 case TokenType.RETURN:
                     return ParseReturnStatement();
                 case TokenType.NEWLINE:
@@ -357,6 +359,69 @@ namespace LuaSharp.Parser
             else
             {
                 AddWhileStatementParseError();
+                return null;
+            }
+        }
+
+        public ForStatement? ParseForStatement()
+        {
+            var statement = new ForStatement();
+            NextToken();
+
+            var initialValue = ParseAssignStatement(false);
+            if (!CheckAnPushToken(TokenType.COMMA) || initialValue == null)
+            {
+                return null;
+            }
+            statement.initialValue = (AssignStatement)initialValue;
+            NextToken();
+
+            var limit = ParseExpression((int)PrecedenceValue.Lowest);
+            if (limit == null)
+            {
+                return null;
+            }
+            statement.limit = limit;
+
+            if (IsPeekToken(TokenType.COMMA))
+            {
+                NextToken();
+                NextToken();
+                var step = ParseExpression((int)PrecedenceValue.Lowest);
+                if (step != null)
+                {
+                    statement.step = step;
+                }
+            }
+            else
+            {
+                var step = new IntegerNumeralLiteral()
+                {
+                    token = new Token(TokenType.NUMERICAL, "1", peekToken.Line, peekToken.Column, ""),
+                    value = 1
+                };
+                statement.step = step;
+            }
+
+            if (!CheckAnPushToken(TokenType.DO))
+            {
+                return null;
+            }
+
+            var body = ParseBlockStatement();
+            if (body == null)
+            {
+                AddBlockStatementParseError();
+                return null;
+            }
+            statement.body = (BlockStatement)body;
+
+            if (IsCurToken(TokenType.END))
+            {
+                return statement;
+            }
+            else
+            {
                 return null;
             }
         }

@@ -502,5 +502,46 @@ namespace Test
                 Assert.Equal(expectedOutput[i], castedWhileStatement.String());
             }
         }
+
+        [Fact]
+        public void ShouldParseForStatements()
+        {
+            var input = new List<string>()
+            {
+                "for i = 10,19,1 do\n x = x + 2\n end",
+                "for j = 1,5 do\n sum = sum + j\n end",
+                "for k = 0,10,2 do\n k = k * 2\n end",
+                "for i = 5,1,-1 do\n total = total + i\n end"
+
+            };
+
+            var expectedOutput = new List<string>()
+            {
+                "for [i = 10, 19, 1] do [x = [x + 2]] end",
+                "for [j = 1, 5, 1] do [sum = [sum + j]] end",
+                "for [k = 0, 10, 2] do [k = [k * 2]] end",
+                "for [i = 5, 1, [- 1]] do [total = [total + i]] end"
+            };
+
+            for (int i = 0; i < input.Count; i++)
+            {
+                var statement = input[i];
+                byte[] byteArray = Encoding.ASCII.GetBytes(statement);
+                var stream = new MemoryStream(byteArray);
+                var lexer = new Lexer(new StreamReader(stream), "");
+
+                var parser = new Parser(lexer);
+                var ast = parser.ParseCode();
+                var errors = parser.GetErrors();
+
+                Assert.Empty(errors);
+                Assert.Single(ast.statements);
+
+                var expression = ast.statements[0];
+                Assert.IsType<ForStatement>(expression);
+                var castedForStatement = (ForStatement)expression;
+                Assert.Equal(expectedOutput[i], castedForStatement.String());
+            }
+        }
     }
 }

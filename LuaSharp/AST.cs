@@ -192,4 +192,18 @@ namespace LuaSharp
             return $"{TokenLiteral()} {condition.String()} do {body.String()} end";
         }
     }
+
+    public struct ForStatement : IStatement
+    {
+        public AssignStatement initialValue;
+        public IExpression limit;
+        public IExpression step;
+        public BlockStatement body;
+
+        public string TokenLiteral() => "for";
+        public string String()
+        {
+            return $"{TokenLiteral()} [{initialValue.String()}, {limit.String()}, {step.String()}] do {body.String()} end";
+        }
+    }
 }
