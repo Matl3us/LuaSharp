@@ -148,6 +148,8 @@ namespace LuaSharp.Parser
                     return ParseWhileStatement();
                 case TokenType.FOR:
                     return ParseForStatement();
+                case TokenType.REPEAT:
+                    return ParseRepeatStatement();
                 case TokenType.RETURN:
                     return ParseReturnStatement();
                 case TokenType.NEWLINE:
@@ -424,6 +426,28 @@ namespace LuaSharp.Parser
             {
                 return null;
             }
+        }
+
+        public RepeatStatement? ParseRepeatStatement()
+        {
+            var statement = new RepeatStatement();
+
+            var body = ParseBlockStatement();
+            if (!IsCurToken(TokenType.UNTIL) || body == null)
+            {
+                AddBlockStatementParseError();
+                return null;
+            }
+            statement.body = (BlockStatement)body;
+            NextToken();
+
+            var condition = ParseExpression((int)PrecedenceValue.Lowest);
+            if (condition == null)
+            {
+                return null;
+            }
+            statement.condition = condition;
+            return statement;
         }
 
         public void NextToken()

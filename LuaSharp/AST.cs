@@ -206,4 +206,16 @@ namespace LuaSharp
             return $"{TokenLiteral()} [{initialValue.String()}, {limit.String()}, {step.String()}] do {body.String()} end";
         }
     }
+
+    public struct RepeatStatement : IStatement
+    {
+        public IExpression condition;
+        public BlockStatement body;
+
+        public string TokenLiteral() => "repeat";
+        public string String()
+        {
+            return $"{TokenLiteral()} {body.String()} until {condition.String()}";
+        }
+    }
 }

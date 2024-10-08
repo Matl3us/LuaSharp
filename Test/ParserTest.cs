@@ -543,5 +543,44 @@ namespace Test
                 Assert.Equal(expectedOutput[i], castedForStatement.String());
             }
         }
+
+        [Fact]
+        public void ShouldParseRepeatStatements()
+        {
+            var input = new List<string>()
+            {
+                "repeat x = x + 2\n until x > 2",
+                "repeat count = count + 5\n until count >= 100",
+                "repeat sum = sum + 1\n x = x + sum\n until x >= 50"
+
+            };
+
+            var expectedOutput = new List<string>()
+            {
+                "repeat [x = [x + 2]] until [x > 2]",
+                "repeat [count = [count + 5]] until [count >= 100]",
+                "repeat [sum = [sum + 1]][x = [x + sum]] until [x >= 50]"
+            };
+
+            for (int i = 0; i < input.Count; i++)
+            {
+                var statement = input[i];
+                byte[] byteArray = Encoding.ASCII.GetBytes(statement);
+                var stream = new MemoryStream(byteArray);
+                var lexer = new Lexer(new StreamReader(stream), "");
+
+                var parser = new Parser(lexer);
+                var ast = parser.ParseCode();
+                var errors = parser.GetErrors();
+
+                Assert.Empty(errors);
+                Assert.Single(ast.statements);
+
+                var expression = ast.statements[0];
+                Assert.IsType<RepeatStatement>(expression);
+                var castedRepeatStatement = (RepeatStatement)expression;
+                Assert.Equal(expectedOutput[i], castedRepeatStatement.String());
+            }
+        }
     }
 }

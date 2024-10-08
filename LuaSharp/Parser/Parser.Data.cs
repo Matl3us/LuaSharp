@@ -48,7 +48,7 @@
 
             BlockEndings =
             [
-                TokenType.END, TokenType.ELSEIF, TokenType.ELSE
+                TokenType.END, TokenType.ELSEIF, TokenType.ELSE, TokenType.UNTIL
             ];
         }
 
