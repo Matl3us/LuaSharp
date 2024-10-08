@@ -152,6 +152,8 @@ namespace LuaSharp.Parser
                     return ParseRepeatStatement();
                 case TokenType.RETURN:
                     return ParseReturnStatement();
+                case TokenType.FUNCTION:
+                    return ParseFunctionStatement();
                 case TokenType.NEWLINE:
                     return null;
                 default:
@@ -448,6 +450,79 @@ namespace LuaSharp.Parser
             }
             statement.condition = condition;
             return statement;
+        }
+
+        public FunctionStatement? ParseFunctionStatement()
+        {
+            var statement = new FunctionStatement();
+            NextToken();
+            if (!IsCurToken(TokenType.IDENTIFIER))
+            {
+                return null;
+            }
+            statement.name = new Identifier()
+            {
+                token = curToken,
+                value = curToken.Literal
+            };
+
+            if (!CheckAnPushToken(TokenType.L_PARENT))
+            {
+                return null;
+            }
+            statement.parameters = ParseFunctionIdentifiers();
+
+            if (!CheckAnPushToken(TokenType.R_PARENT))
+            {
+                return null;
+            }
+
+            var body = ParseBlockStatement();
+            if (body == null)
+            {
+                return null;
+            }
+            statement.body = (BlockStatement)body;
+
+            if (IsCurToken(TokenType.END))
+            {
+                return statement;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public List<Identifier> ParseFunctionIdentifiers()
+        {
+            var identifiers = new List<Identifier>();
+
+            if (IsPeekToken(TokenType.R_PARENT))
+            {
+                NextToken();
+                return identifiers;
+            }
+            NextToken();
+
+            identifiers.Add(new Identifier()
+            {
+                token = curToken,
+                value = curToken.Literal
+            });
+
+            while (IsPeekToken(TokenType.COMMA))
+            {
+                NextToken();
+                NextToken();
+                identifiers.Add(new Identifier()
+                {
+                    token = curToken,
+                    value = curToken.Literal
+                });
+            }
+
+            return identifiers;
         }
 
         public void NextToken()

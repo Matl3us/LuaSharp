@@ -582,5 +582,44 @@ namespace Test
                 Assert.Equal(expectedOutput[i], castedRepeatStatement.String());
             }
         }
+
+        [Fact]
+        public void ShouldParseFunctionStatements()
+        {
+            var input = new List<string>()
+            {
+                "function sum(x, y)\n local result = x + y\n return result\n end",
+                "function max(num1, num2)\n if (num1 > num2) then\n return num1\n end\n end",
+                "function factorial(n)\n if n == 0 then\n return 1\n else\n return n * factorial(n-1)\n end\n end"
+
+            };
+
+            var expectedOutput = new List<string>()
+            {
+                "function sum[[x][y]] [local result = [x + y]][return result] end",
+                "function max[[num1][num2]] [if [num1 > num2] then [return num1] end] end",
+                "function factorial[[n]] [if [n == 0] then [return 1] else [return [n * factorial]][[n - 1]] end] end"
+            };
+
+            for (int i = 0; i < input.Count; i++)
+            {
+                var statement = input[i];
+                byte[] byteArray = Encoding.ASCII.GetBytes(statement);
+                var stream = new MemoryStream(byteArray);
+                var lexer = new Lexer(new StreamReader(stream), "");
+
+                var parser = new Parser(lexer);
+                var ast = parser.ParseCode();
+                var errors = parser.GetErrors();
+
+                Assert.Empty(errors);
+                Assert.Single(ast.statements);
+
+                var expression = ast.statements[0];
+                Assert.IsType<FunctionStatement>(expression);
+                var castedFunctionStatement = (FunctionStatement)expression;
+                Assert.Equal(expectedOutput[i], castedFunctionStatement.String());
+            }
+        }
     }
 }
