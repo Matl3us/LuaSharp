@@ -621,5 +621,43 @@ namespace Test
                 Assert.Equal(expectedOutput[i], castedFunctionStatement.String());
             }
         }
+
+        [Fact]
+        public void ShouldParseFunctionCallStatements()
+        {
+            var input = new List<string>()
+            {
+                "sum(x, y)",
+                "sum(x + 5, y * 2)",
+                "power((2 + var) / 3, z - 1)"
+            };
+
+            var expectedOutput = new List<string>()
+            {
+                "sum[[x][y]]",
+                "sum[[[x + 5]][[y * 2]]]",
+                "power[[[[2 + var] / 3]][[z - 1]]]"
+            };
+
+            for (int i = 0; i < input.Count; i++)
+            {
+                var statement = input[i];
+                byte[] byteArray = Encoding.ASCII.GetBytes(statement);
+                var stream = new MemoryStream(byteArray);
+                var lexer = new Lexer(new StreamReader(stream), "");
+
+                var parser = new Parser(lexer);
+                var ast = parser.ParseCode();
+                var errors = parser.GetErrors();
+
+                Assert.Empty(errors);
+                Assert.Single(ast.statements);
+
+                var expression = ast.statements[0];
+                Assert.IsType<FunctionCallStatement>(expression);
+                var castedFunctionCallStatement = (FunctionCallStatement)expression;
+                Assert.Equal(expectedOutput[i], castedFunctionCallStatement.String());
+            }
+        }
     }
 }

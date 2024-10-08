@@ -236,4 +236,21 @@ namespace LuaSharp
             return $"{TokenLiteral()} {name.String()}[{paramsString}] {body.String()} end";
         }
     }
+
+    public struct FunctionCallStatement : IStatement
+    {
+        public Identifier name;
+        public List<IExpression> arguments;
+
+        public string TokenLiteral() => "";
+        public string String()
+        {
+            var argsString = new StringBuilder();
+            foreach (var arg in arguments)
+            {
+                argsString.Append($"[{arg.String()}]");
+            }
+            return $"{name.String()}[{argsString}]";
+        }
+    }
 }

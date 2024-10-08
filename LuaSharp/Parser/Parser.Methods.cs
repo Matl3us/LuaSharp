@@ -136,6 +136,10 @@ namespace LuaSharp.Parser
                     {
                         return ParseAssignStatement(false);
                     }
+                    else if (peekToken.Type == TokenType.L_PARENT)
+                    {
+                        return ParseFunctionCallStatement();
+                    }
                     else
                     {
                         return ParseExpressionStatement();
@@ -470,7 +474,7 @@ namespace LuaSharp.Parser
             {
                 return null;
             }
-            statement.parameters = ParseFunctionIdentifiers();
+            statement.parameters = ParseFunctionParameters();
 
             if (!CheckAnPushToken(TokenType.R_PARENT))
             {
@@ -494,7 +498,7 @@ namespace LuaSharp.Parser
             }
         }
 
-        public List<Identifier> ParseFunctionIdentifiers()
+        public List<Identifier> ParseFunctionParameters()
         {
             var identifiers = new List<Identifier>();
 
@@ -523,6 +527,70 @@ namespace LuaSharp.Parser
             }
 
             return identifiers;
+        }
+
+        public FunctionCallStatement? ParseFunctionCallStatement()
+        {
+            var statement = new FunctionCallStatement
+            {
+                name = new Identifier()
+                {
+                    token = curToken,
+                    value = curToken.Literal
+                }
+            };
+
+            if (!CheckAnPushToken(TokenType.L_PARENT))
+            {
+                return null;
+            }
+
+            var arguments = ParseFunctionArguments();
+            if (arguments == null)
+            {
+                return null;
+            }
+            statement.arguments = arguments;
+
+            if (!CheckAnPushToken(TokenType.R_PARENT))
+            {
+                return null;
+            }
+            return statement;
+        }
+
+        public List<IExpression>? ParseFunctionArguments()
+        {
+            var expressions = new List<IExpression>();
+
+            if (IsPeekToken(TokenType.R_PARENT))
+            {
+                NextToken();
+                return expressions;
+            }
+            NextToken();
+
+            var expStatement = ParseExpressionStatement();
+            if (expStatement.expression == null)
+            {
+                return null;
+            }
+            expressions.Add(expStatement.expression);
+
+
+            while (IsPeekToken(TokenType.COMMA))
+            {
+                NextToken();
+                NextToken();
+                var expStat = ParseExpressionStatement();
+                if (expStat.expression == null)
+                {
+                    return null;
+                }
+                expressions.Add(expStat.expression);
+            }
+
+            return expressions;
         }
 
         public void NextToken()
