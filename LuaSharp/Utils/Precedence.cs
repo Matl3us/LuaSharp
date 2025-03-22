@@ -1,6 +1,6 @@
 ﻿namespace LuaSharp.utils
 {
-    public enum PrecedenceValue : int
+    public enum PrecedenceValue
     {
         Lowest,
         OR,              // or
@@ -37,16 +37,6 @@
         };
 
         public static int PeekPrecedence(Token token)
-        {
-            if (precedenceMap.TryGetValue(token.Type, out PrecedenceValue value))
-            {
-                return (int)value;
-            }
-
-            return (int)PrecedenceValue.Lowest;
-        }
-
-        public static int CurPrecedence(Token token)
         {
             if (precedenceMap.TryGetValue(token.Type, out PrecedenceValue value))
             {

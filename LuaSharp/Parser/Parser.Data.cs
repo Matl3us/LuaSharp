@@ -1,4 +1,4 @@
-﻿namespace LuaSharp.Parser
+﻿namespace LuaSharp
 {
     public partial class Parser
     {

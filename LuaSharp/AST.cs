@@ -2,12 +2,12 @@ using System.Text;
 
 namespace LuaSharp
 {
-    public class AST
+    public class Ast
     {
-        public List<IStatement> statements = [];
+        public List<IStatement> Statements { get; set; } = [];
         public void PrintStatements()
         {
-            foreach (var st in statements)
+            foreach (var st in Statements)
             {
                 Console.WriteLine(st.String());
             }
@@ -23,74 +23,58 @@ namespace LuaSharp
     public interface IExpression : INode { };
 
     // Expressions
-
-    public struct Identifier : IExpression
+    public abstract class Literal<T> : IExpression
     {
-        public Token token;
-        public string value;
-        public string TokenLiteral() => token.Literal;
-        public string String() => value;
+        public Token Token { get; set; }
+        public required T Value { get; set; }
+
+        public string TokenLiteral() => Token.Literal;
+        public string String() => Token.Literal;
     }
 
-    public struct IntegerNumeralLiteral : IExpression
-    {
-        public Token token;
-        public int value;
-        public string TokenLiteral() => token.Literal;
-        public string String() => token.Literal;
-    }
+    public class IdentifierLiteral : Literal<string> { }
 
-    public struct FloatNumeralLiteral : IExpression
-    {
-        public Token token;
-        public double value;
-        public string TokenLiteral() => token.Literal;
-        public string String() => token.Literal;
-    }
+    public class IntegerNumeralLiteral : Literal<int> { }
 
-    public struct BooleanLiteral : IExpression
-    {
-        public Token token;
-        public bool value;
-        public string TokenLiteral() => token.Literal;
-        public string String() => token.Literal;
-    }
+    public class FloatNumeralLiteral : Literal<double> { }
+
+    public class BooleanLiteral : Literal<bool> { }
 
     public struct PrefixExpression : IExpression
     {
-        public Token token;
-        public string operatorSign;
-        public IExpression? rightSide;
-        public string TokenLiteral() => token.Literal;
-        public string String()
+        public Token Token { get; set; }
+        public string OperatorSign { get; set; }
+        public IExpression? RightSide { get; set; }
+        public readonly string TokenLiteral() => Token.Literal;
+        public readonly string String()
         {
-            if (rightSide != null)
+            if (RightSide != null)
             {
-                return $"[{operatorSign} {rightSide.String()}]";
+                return $"[{OperatorSign} {RightSide.String()}]";
             }
             else
             {
-                return $"[{operatorSign} no expression]";
+                return $"[{OperatorSign} no expression]";
             }
         }
     }
 
     public struct InfixExpression : IExpression
     {
-        public Token token;
-        public string operatorSign;
-        public IExpression leftSide;
-        public IExpression? rightSide;
-        public string TokenLiteral() => token.Literal;
-        public string String()
+        public Token Token { get; set; }
+        public string OperatorSign { get; set; }
+        public IExpression LeftSide { get; set; }
+        public IExpression? RightSide { get; set; }
+        public readonly string TokenLiteral() => Token.Literal;
+        public readonly string String()
         {
-            if (rightSide != null)
+            if (RightSide != null)
             {
-                return $"[{leftSide.String()} {operatorSign} {rightSide.String()}]";
+                return $"[{LeftSide.String()} {OperatorSign} {RightSide.String()}]";
             }
             else
             {
-                return $"[{leftSide.String()} {operatorSign} no expression]]";
+                return $"[{LeftSide.String()} {OperatorSign} no expression]]";
             }
         }
     }
@@ -99,14 +83,14 @@ namespace LuaSharp
 
     public struct ExpressionStatement : IStatement
     {
-        public Token token;
-        public IExpression? expression;
-        public string TokenLiteral() => token.Literal;
-        public string String()
+        public Token Token { get; set; }
+        public IExpression? Expression { get; set; }
+        public readonly string TokenLiteral() => Token.Literal;
+        public readonly string String()
         {
-            if (expression != null)
+            if (Expression != null)
             {
-                return expression.String();
+                return Expression.String();
             }
             else
             {
@@ -117,13 +101,13 @@ namespace LuaSharp
 
     public struct BlockStatement() : IStatement
     {
-        public List<IStatement> statements = [];
+        public List<IStatement> Statements { get; set; } = [];
 
-        public string TokenLiteral() => "";
-        public string String()
+        public readonly string TokenLiteral() => "";
+        public readonly string String()
         {
             var blockString = new StringBuilder();
-            foreach (var statement in statements)
+            foreach (var statement in Statements)
             {
                 blockString.Append($"[{statement.String()}]");
             }
@@ -133,47 +117,47 @@ namespace LuaSharp
 
     public struct AssignStatement : IStatement
     {
-        public Token token;
-        public Identifier name;
-        public IExpression expression;
-        public bool isLocal;
+        public Token Token { get; set; }
+        public IdentifierLiteral Name { get; set; }
+        public IExpression Expression { get; set; }
+        public bool IsLocal { get; set; }
 
-        public string TokenLiteral() => token.Literal;
-        public string String()
+        public readonly string TokenLiteral() => Token.Literal;
+        public readonly string String()
         {
-            if (isLocal)
+            if (IsLocal)
             {
-                return $"local {name.String()} {TokenLiteral()} {expression.String()}";
+                return $"local {Name.String()} {TokenLiteral()} {Expression.String()}";
             }
             else
             {
-                return $"{name.String()} {TokenLiteral()} {expression.String()}";
+                return $"{Name.String()} {TokenLiteral()} {Expression.String()}";
             }
         }
     }
 
     public struct ReturnStatement : IStatement
     {
-        public Token token;
-        public IExpression expression;
+        public Token Token { get; set; }
+        public IExpression Expression { get; set; }
 
-        public string TokenLiteral() => token.Literal;
-        public string String() => $"{TokenLiteral()} {expression.String()}";
+        public readonly string TokenLiteral() => Token.Literal;
+        public readonly string String() => $"{TokenLiteral()} {Expression.String()}";
     }
 
     public struct IfStatement : IStatement
     {
-        public IExpression condition;
-        public BlockStatement consequence;
-        public BlockStatement? alternative;
+        public IExpression Condition { get; set; }
+        public BlockStatement Consequence { get; set; }
+        public BlockStatement? Aternative { get; set; }
 
-        public string TokenLiteral() => "if";
-        public string String()
+        public readonly string TokenLiteral() => "if";
+        public readonly string String()
         {
-            var ifString = new StringBuilder($"{TokenLiteral()} {condition.String()} then {consequence.String()} ");
-            if (alternative != null)
+            var ifString = new StringBuilder($"{TokenLiteral()} {Condition.String()} then {Consequence.String()} ");
+            if (Aternative != null)
             {
-                var alt = (BlockStatement)alternative;
+                var alt = (BlockStatement)Aternative;
                 ifString.Append($"else {alt.String()} ");
             }
             ifString.Append("end");
@@ -183,74 +167,74 @@ namespace LuaSharp
 
     public struct WhileStatement : IStatement
     {
-        public IExpression condition;
-        public BlockStatement body;
+        public IExpression Condition { get; set; }
+        public BlockStatement Body { get; set; }
 
-        public string TokenLiteral() => "while";
-        public string String()
+        public readonly string TokenLiteral() => "while";
+        public readonly string String()
         {
-            return $"{TokenLiteral()} {condition.String()} do {body.String()} end";
+            return $"{TokenLiteral()} {Condition.String()} do {Body.String()} end";
         }
     }
 
     public struct ForStatement : IStatement
     {
-        public AssignStatement initialValue;
-        public IExpression limit;
-        public IExpression step;
-        public BlockStatement body;
+        public AssignStatement InitialValue { get; set; }
+        public IExpression Limit { get; set; }
+        public IExpression Step { get; set; }
+        public BlockStatement Body { get; set; }
 
-        public string TokenLiteral() => "for";
-        public string String()
+        public readonly string TokenLiteral() => "for";
+        public readonly string String()
         {
-            return $"{TokenLiteral()} [{initialValue.String()}, {limit.String()}, {step.String()}] do {body.String()} end";
+            return $"{TokenLiteral()} [{InitialValue.String()}, {Limit.String()}, {Step.String()}] do {Body.String()} end";
         }
     }
 
     public struct RepeatStatement : IStatement
     {
-        public IExpression condition;
-        public BlockStatement body;
+        public IExpression Condition { get; set; }
+        public BlockStatement Body { get; set; }
 
-        public string TokenLiteral() => "repeat";
-        public string String()
+        public readonly string TokenLiteral() => "repeat";
+        public readonly string String()
         {
-            return $"{TokenLiteral()} {body.String()} until {condition.String()}";
+            return $"{TokenLiteral()} {Body.String()} until {Condition.String()}";
         }
     }
 
     public struct FunctionStatement : IStatement
     {
-        public Identifier name;
-        public List<Identifier> parameters;
-        public BlockStatement body;
+        public IdentifierLiteral Name { get; set; }
+        public List<IdentifierLiteral> Parameters { get; set; }
+        public BlockStatement Body { get; set; }
 
-        public string TokenLiteral() => "function";
-        public string String()
+        public readonly string TokenLiteral() => "function";
+        public readonly string String()
         {
             var paramsString = new StringBuilder();
-            foreach (var parameter in parameters)
+            foreach (var parameter in Parameters)
             {
                 paramsString.Append($"[{parameter.String()}]");
             }
-            return $"{TokenLiteral()} {name.String()}[{paramsString}] {body.String()} end";
+            return $"{TokenLiteral()} {Name.String()}[{paramsString}] {Body.String()} end";
         }
     }
 
     public struct FunctionCallStatement : IStatement
     {
-        public Identifier name;
-        public List<IExpression> arguments;
+        public IdentifierLiteral Name { get; set; }
+        public List<IExpression> Arguments { get; set; }
 
-        public string TokenLiteral() => "";
-        public string String()
+        public readonly string TokenLiteral() => "";
+        public readonly string String()
         {
             var argsString = new StringBuilder();
-            foreach (var arg in arguments)
+            foreach (var arg in Arguments)
             {
                 argsString.Append($"[{arg.String()}]");
             }
-            return $"{name.String()}[{argsString}]";
+            return $"{Name.String()}[{argsString}]";
         }
     }
 }

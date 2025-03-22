@@ -264,19 +264,9 @@ namespace LuaSharp
             }
         }
 
-        private void SkipComment()
-        {
-            while (_char != '\n')
-            {
-                _char = (char)Stream.Read();
-            }
-            _column = 1;
-            _line++;
-        }
-
         private string ReadIdentifier()
         {
-            StringBuilder sb = new StringBuilder(_char);
+            StringBuilder sb = new(_char);
             char ch = (char)Stream.Peek();
 
             while (char.IsLetterOrDigit(ch) || ch == '_')
@@ -292,7 +282,7 @@ namespace LuaSharp
 
         private string ReadNumber()
         {
-            StringBuilder sb = new StringBuilder(_char);
+            StringBuilder sb = new(_char);
             char ch = (char)Stream.Peek();
 
             while (char.IsLetterOrDigit(ch) || ch == '.' || ch == '-')
@@ -308,7 +298,7 @@ namespace LuaSharp
 
         private string ReadString()
         {
-            StringBuilder sb = new StringBuilder(_char);
+            StringBuilder sb = new(_char);
             char closingSign = _char;
             char ch = (char)Stream.Peek();
 
@@ -327,7 +317,7 @@ namespace LuaSharp
 
         private string ReadIllegal()
         {
-            StringBuilder sb = new StringBuilder(_char);
+            StringBuilder sb = new(_char);
             char ch = (char)Stream.Peek();
 
             while (!char.IsWhiteSpace(ch))

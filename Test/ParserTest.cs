@@ -1,5 +1,4 @@
 ﻿using LuaSharp;
-using LuaSharp.Parser;
 using System.Text;
 
 namespace Test
@@ -33,18 +32,18 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
 
                 Assert.IsType<ExpressionStatement>(expression);
                 var castedExpression = (ExpressionStatement)expression;
-                Assert.Equal(expectedOutput[i].Type, castedExpression.token.Type);
-                Assert.NotNull(castedExpression.expression);
+                Assert.Equal(expectedOutput[i].Type, castedExpression.Token.Type);
+                Assert.NotNull(castedExpression.Expression);
 
-                Assert.IsType<IntegerNumeralLiteral>(castedExpression.expression);
-                var integerExpression = (IntegerNumeralLiteral)castedExpression.expression;
-                Assert.Equal(expectedOutput[i].Value, integerExpression.value);
+                Assert.IsType<IntegerNumeralLiteral>(castedExpression.Expression);
+                var integerExpression = (IntegerNumeralLiteral)castedExpression.Expression;
+                Assert.Equal(expectedOutput[i].Value, integerExpression.Value);
             }
         }
 
@@ -77,18 +76,18 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
 
                 Assert.IsType<ExpressionStatement>(expression);
                 var castedExpression = (ExpressionStatement)expression;
-                Assert.Equal(expectedOutput[i].Type, castedExpression.token.Type);
-                Assert.NotNull(castedExpression.expression);
+                Assert.Equal(expectedOutput[i].Type, castedExpression.Token.Type);
+                Assert.NotNull(castedExpression.Expression);
 
-                Assert.IsType<FloatNumeralLiteral>(castedExpression.expression);
-                var floatExpression = (FloatNumeralLiteral)castedExpression.expression;
-                Assert.Equal(expectedOutput[i].Value, floatExpression.value);
+                Assert.IsType<FloatNumeralLiteral>(castedExpression.Expression);
+                var floatExpression = (FloatNumeralLiteral)castedExpression.Expression;
+                Assert.Equal(expectedOutput[i].Value, floatExpression.Value);
             }
         }
 
@@ -118,18 +117,18 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
 
                 Assert.IsType<ExpressionStatement>(expression);
                 var castedExpression = (ExpressionStatement)expression;
-                Assert.Equal(expectedOutput[i].Type, castedExpression.token.Type);
-                Assert.NotNull(castedExpression.expression);
+                Assert.Equal(expectedOutput[i].Type, castedExpression.Token.Type);
+                Assert.NotNull(castedExpression.Expression);
 
-                Assert.IsType<IntegerNumeralLiteral>(castedExpression.expression);
-                var integerExpression = (IntegerNumeralLiteral)castedExpression.expression;
-                Assert.Equal(expectedOutput[i].Value, integerExpression.value);
+                Assert.IsType<IntegerNumeralLiteral>(castedExpression.Expression);
+                var integerExpression = (IntegerNumeralLiteral)castedExpression.Expression;
+                Assert.Equal(expectedOutput[i].Value, integerExpression.Value);
             }
         }
 
@@ -159,18 +158,18 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
 
                 Assert.IsType<ExpressionStatement>(expression);
                 var castedExpression = (ExpressionStatement)expression;
-                Assert.Equal(expectedOutput[i].Type, castedExpression.token.Type);
-                Assert.NotNull(castedExpression.expression);
+                Assert.Equal(expectedOutput[i].Type, castedExpression.Token.Type);
+                Assert.NotNull(castedExpression.Expression);
 
-                Assert.IsType<BooleanLiteral>(castedExpression.expression);
-                var booleanExpression = (BooleanLiteral)castedExpression.expression;
-                Assert.Equal(expectedOutput[i].Value, booleanExpression.value);
+                Assert.IsType<BooleanLiteral>(castedExpression.Expression);
+                var booleanExpression = (BooleanLiteral)castedExpression.Expression;
+                Assert.Equal(expectedOutput[i].Value, booleanExpression.Value);
             }
         }
 
@@ -202,14 +201,14 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
                 Assert.IsType<ExpressionStatement>(expression);
                 var castedExpression = (ExpressionStatement)expression;
-                Assert.Equal(expectedOutput[i].Type, castedExpression.token.Type);
-                Assert.NotNull(castedExpression.expression);
-                Assert.Equal(expectedOutput[i].String, castedExpression.expression.String());
+                Assert.Equal(expectedOutput[i].Type, castedExpression.Token.Type);
+                Assert.NotNull(castedExpression.Expression);
+                Assert.Equal(expectedOutput[i].String, castedExpression.Expression.String());
             }
         }
 
@@ -270,15 +269,15 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
                 Assert.IsType<ExpressionStatement>(expression);
                 var castedExpressionStatement = (ExpressionStatement)expression;
-                Assert.NotNull(castedExpressionStatement.expression);
-                var castedExpression = (InfixExpression)castedExpressionStatement.expression;
-                Assert.Equal(expectedOutput[i].Type, castedExpression.token.Type);
-                Assert.Equal(expectedOutput[i].String, castedExpressionStatement.expression.String());
+                Assert.NotNull(castedExpressionStatement.Expression);
+                var castedExpression = (InfixExpression)castedExpressionStatement.Expression;
+                Assert.Equal(expectedOutput[i].Type, castedExpression.Token.Type);
+                Assert.Equal(expectedOutput[i].String, castedExpressionStatement.Expression.String());
             }
         }
 
@@ -323,13 +322,13 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
                 Assert.IsType<ExpressionStatement>(expression);
                 var castedExpressionStatement = (ExpressionStatement)expression;
-                Assert.NotNull(castedExpressionStatement.expression);
-                var castedExpression = (InfixExpression)castedExpressionStatement.expression;
+                Assert.NotNull(castedExpressionStatement.Expression);
+                var castedExpression = (InfixExpression)castedExpressionStatement.Expression;
                 Assert.Equal(expectedOutput[i], castedExpression.String());
             }
         }
@@ -369,9 +368,9 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
                 Assert.IsType<AssignStatement>(expression);
                 var castedAssignStatement = (AssignStatement)expression;
                 Assert.Equal(expectedOutput[i], castedAssignStatement.String());
@@ -409,9 +408,9 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
                 Assert.IsType<ReturnStatement>(expression);
                 var castedReturnStatement = (ReturnStatement)expression;
                 Assert.Equal(expectedOutput[i], castedReturnStatement.String());
@@ -453,9 +452,9 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
                 Assert.IsType<IfStatement>(expression);
                 var castedIfStatement = (IfStatement)expression;
                 Assert.Equal(expectedOutput[i], castedIfStatement.String());
@@ -494,9 +493,9 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
                 Assert.IsType<WhileStatement>(expression);
                 var castedWhileStatement = (WhileStatement)expression;
                 Assert.Equal(expectedOutput[i], castedWhileStatement.String());
@@ -535,9 +534,9 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
                 Assert.IsType<ForStatement>(expression);
                 var castedForStatement = (ForStatement)expression;
                 Assert.Equal(expectedOutput[i], castedForStatement.String());
@@ -574,9 +573,9 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
                 Assert.IsType<RepeatStatement>(expression);
                 var castedRepeatStatement = (RepeatStatement)expression;
                 Assert.Equal(expectedOutput[i], castedRepeatStatement.String());
@@ -613,9 +612,9 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
                 Assert.IsType<FunctionStatement>(expression);
                 var castedFunctionStatement = (FunctionStatement)expression;
                 Assert.Equal(expectedOutput[i], castedFunctionStatement.String());
@@ -651,9 +650,9 @@ namespace Test
                 var errors = parser.GetErrors();
 
                 Assert.Empty(errors);
-                Assert.Single(ast.statements);
+                Assert.Single(ast.Statements);
 
-                var expression = ast.statements[0];
+                var expression = ast.Statements[0];
                 Assert.IsType<FunctionCallStatement>(expression);
                 var castedFunctionCallStatement = (FunctionCallStatement)expression;
                 Assert.Equal(expectedOutput[i], castedFunctionCallStatement.String());
