@@ -1,6 +1,9 @@
-﻿using LuaSharp.utils;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text.RegularExpressions;
+using LuaSharp.AST;
+using LuaSharp.AST.Expressions;
+using LuaSharp.AST.Statements;
+using LuaSharp.utils;
 
 namespace LuaSharp
 {
@@ -231,32 +234,29 @@ namespace LuaSharp
 
         public AssignStatement? ParseAssignStatement(bool isLocal)
         {
-            var statement = new AssignStatement
-            {
-                Name = new IdentifierLiteral() { Token = curToken, Value = curToken.Literal },
-                IsLocal = isLocal
-            };
-
+            var name = new IdentifierLiteral() { Token = curToken, Value = curToken.Literal };
             if (!CheckAnPushToken(TokenType.ASSIGN))
             {
                 AddAssignStatementParseError();
                 return null;
             }
 
-            statement.Token = curToken;
+            var token = curToken;
             NextToken();
             var expression = ParseExpression((int)PrecedenceValue.Lowest);
-            if (expression != null)
-            {
-                statement.Expression = expression;
-            }
-            else
+            if (expression is null)
             {
                 AddAssignStatementParseError();
                 return null;
             }
 
-            return statement;
+            return new AssignStatement
+            {
+                Name = name,
+                IsLocal = isLocal,
+                Token = token,
+                Expression = expression
+            };
         }
 
         public AssignStatement? ParseLocalAssignStatement()
@@ -272,29 +272,24 @@ namespace LuaSharp
 
         public ReturnStatement? ParseReturnStatement()
         {
-            var statement = new ReturnStatement()
-            {
-                Token = curToken
-            };
-
+            var token = curToken;
             NextToken();
             var expression = ParseExpression((int)PrecedenceValue.Lowest);
-            if (expression != null)
-            {
-                statement.Expression = expression;
-            }
-            else
+            if (expression is null)
             {
                 AddReturnStatementParseError();
                 return null;
             }
 
-            return statement;
+            return new ReturnStatement()
+            {
+                Token = token,
+                Expression = expression
+            };
         }
 
         public IfStatement? ParseIfStatement()
         {
-            var statement = new IfStatement();
             NextToken();
 
             var condition = ParseExpression((int)PrecedenceValue.Lowest);
@@ -303,7 +298,6 @@ namespace LuaSharp
                 AddIfStatementParseError();
                 return null;
             }
-            statement.Condition = condition;
 
             var consequence = ParseBlockStatement();
             if (consequence == null)
@@ -311,16 +305,18 @@ namespace LuaSharp
                 AddBlockStatementParseError();
                 return null;
             }
-            statement.Consequence = (BlockStatement)consequence;
-
 
             if (IsCurToken(TokenType.ELSE))
             {
                 var alternative = ParseBlockStatement();
                 if (IsCurToken(TokenType.END))
                 {
-                    statement.Aternative = alternative;
-                    return statement;
+                    return new IfStatement()
+                    {
+                        Condition = condition,
+                        Consequence = consequence,
+                        Aternative = alternative
+                    };
                 }
 
                 AddIfStatementParseError();
@@ -328,8 +324,12 @@ namespace LuaSharp
             }
             else if (IsCurToken(TokenType.END))
             {
-                statement.Aternative = null;
-                return statement;
+                return new IfStatement()
+                {
+                    Condition = condition,
+                    Consequence = consequence,
+                    Aternative = null
+                };
             }
             else
             {
@@ -341,7 +341,6 @@ namespace LuaSharp
 
         public WhileStatement? ParseWhileStatement()
         {
-            var statement = new WhileStatement();
             NextToken();
 
             var condition = ParseExpression((int)PrecedenceValue.Lowest);
@@ -350,7 +349,6 @@ namespace LuaSharp
                 AddWhileStatementParseError();
                 return null;
             }
-            statement.Condition = condition;
 
             var body = ParseBlockStatement();
             if (body == null)
@@ -358,11 +356,14 @@ namespace LuaSharp
                 AddBlockStatementParseError();
                 return null;
             }
-            statement.Body = (BlockStatement)body;
 
             if (IsCurToken(TokenType.END))
             {
-                return statement;
+                return new WhileStatement()
+                {
+                    Body = body,
+                    Condition = condition
+                };
             }
             else
             {
@@ -373,7 +374,6 @@ namespace LuaSharp
 
         public ForStatement? ParseForStatement()
         {
-            var statement = new ForStatement();
             NextToken();
 
             var initialValue = ParseAssignStatement(false);
@@ -381,7 +381,6 @@ namespace LuaSharp
             {
                 return null;
             }
-            statement.InitialValue = (AssignStatement)initialValue;
             NextToken();
 
             var limit = ParseExpression((int)PrecedenceValue.Lowest);
@@ -389,26 +388,21 @@ namespace LuaSharp
             {
                 return null;
             }
-            statement.Limit = limit;
 
+            IExpression? step = null;
             if (IsPeekToken(TokenType.COMMA))
             {
                 NextToken();
                 NextToken();
-                var step = ParseExpression((int)PrecedenceValue.Lowest);
-                if (step != null)
-                {
-                    statement.Step = step;
-                }
+                step = ParseExpression((int)PrecedenceValue.Lowest);
             }
             else
             {
-                var step = new IntegerNumeralLiteral()
+                step = new IntegerNumeralLiteral()
                 {
                     Token = new Token(TokenType.NUMERICAL, "1", peekToken.Line, peekToken.Column, ""),
                     Value = 1
                 };
-                statement.Step = step;
             }
 
             if (!CheckAnPushToken(TokenType.DO))
@@ -422,11 +416,16 @@ namespace LuaSharp
                 AddBlockStatementParseError();
                 return null;
             }
-            statement.Body = (BlockStatement)body;
 
             if (IsCurToken(TokenType.END))
             {
-                return statement;
+                return new ForStatement()
+                {
+                    InitialValue = initialValue,
+                    Limit = limit,
+                    Step = step,
+                    Body = body
+                };
             }
             else
             {
@@ -436,15 +435,12 @@ namespace LuaSharp
 
         public RepeatStatement? ParseRepeatStatement()
         {
-            var statement = new RepeatStatement();
-
             var body = ParseBlockStatement();
             if (!IsCurToken(TokenType.UNTIL) || body == null)
             {
                 AddBlockStatementParseError();
                 return null;
             }
-            statement.Body = (BlockStatement)body;
             NextToken();
 
             var condition = ParseExpression((int)PrecedenceValue.Lowest);
@@ -452,19 +448,21 @@ namespace LuaSharp
             {
                 return null;
             }
-            statement.Condition = condition;
-            return statement;
+            return new RepeatStatement()
+            {
+                Body = body,
+                Condition = condition
+            };
         }
 
         public FunctionStatement? ParseFunctionStatement()
         {
-            var statement = new FunctionStatement();
             NextToken();
             if (!IsCurToken(TokenType.IDENTIFIER))
             {
                 return null;
             }
-            statement.Name = new IdentifierLiteral()
+            var name = new IdentifierLiteral()
             {
                 Token = curToken,
                 Value = curToken.Literal
@@ -474,7 +472,7 @@ namespace LuaSharp
             {
                 return null;
             }
-            statement.Parameters = ParseFunctionParameters();
+            var parameters = ParseFunctionParameters();
 
             if (!CheckAnPushToken(TokenType.R_PARENT))
             {
@@ -486,11 +484,15 @@ namespace LuaSharp
             {
                 return null;
             }
-            statement.Body = (BlockStatement)body;
 
             if (IsCurToken(TokenType.END))
             {
-                return statement;
+                return new FunctionStatement()
+                {
+                    Name = name,
+                    Parameters = parameters,
+                    Body = body
+                };
             }
             else
             {
@@ -531,13 +533,10 @@ namespace LuaSharp
 
         public FunctionCallStatement? ParseFunctionCallStatement()
         {
-            var statement = new FunctionCallStatement
+            var name = new IdentifierLiteral()
             {
-                Name = new IdentifierLiteral()
-                {
-                    Token = curToken,
-                    Value = curToken.Literal
-                }
+                Token = curToken,
+                Value = curToken.Literal
             };
 
             if (!CheckAnPushToken(TokenType.L_PARENT))
@@ -550,13 +549,16 @@ namespace LuaSharp
             {
                 return null;
             }
-            statement.Arguments = arguments;
 
             if (!CheckAnPushToken(TokenType.R_PARENT))
             {
                 return null;
             }
-            return statement;
+            return new FunctionCallStatement()
+            {
+                Name = name,
+                Arguments = arguments
+            };
         }
 
         public List<IExpression>? ParseFunctionArguments()

@@ -1,4 +1,6 @@
-﻿namespace LuaSharp
+﻿using LuaSharp.AST;
+
+namespace LuaSharp
 {
     public partial class Parser
     {

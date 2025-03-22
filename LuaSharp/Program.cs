@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using LuaSharp.AST;
 
 namespace LuaSharp
 {
