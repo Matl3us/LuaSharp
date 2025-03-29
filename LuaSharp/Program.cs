@@ -32,7 +32,7 @@ namespace LuaSharp
                         byte[] byteArray = Encoding.ASCII.GetBytes(s);
                         var stream = new MemoryStream(byteArray);
 
-                        var lexer = new Lexer(new StreamReader(stream), "");
+                        var lexer = new Lexer(new StreamReader(stream));
                         var parser = new Parser(lexer);
                         Ast ast = parser.ParseCode();
 
