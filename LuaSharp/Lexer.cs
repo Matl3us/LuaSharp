@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -33,6 +32,10 @@ namespace LuaSharp
 
         public Token NextToken()
         {
+            var token = new Token()
+                .SetLine(_line)
+                .SetColumn(_column)
+                .SetFileName(_filename);
             var state = LexerState.Start;
             var buffer = new StringBuilder();
 
@@ -46,13 +49,14 @@ namespace LuaSharp
                         {
                             if (_curChar == '\n')
                             {
-                                return ReadNewLine();
+                                return ReadNewLine(token);
                             }
-                            else if(_curChar == '\r')
+                            else if (_curChar == '\r')
                             {
                                 break;
                             }
                             _column++;
+                            token.SetColumn(_column);
                         }
                         else if (char.IsLetter(_curChar) || _curChar == '_')
                         {
@@ -76,7 +80,8 @@ namespace LuaSharp
                         }
                         else
                         {
-                            return ReadSymbol();
+                            _column++;
+                            return ReadSymbol(token);
                         }
 
                         break;
@@ -88,11 +93,11 @@ namespace LuaSharp
                         }
                         else
                         {
-                            return CreateIdentifier(buffer);
+                            return CreateIdentifier(buffer, token);
                         }
                         break;
                     case LexerState.ReadingNumber:
-                        if (char.IsLetterOrDigit(_nextChar) 
+                        if (char.IsLetterOrDigit(_nextChar)
                             || _nextChar == '.' || _nextChar == '-'
                             || _nextChar == 'x' || _nextChar == 'X'
                             || _nextChar == 'e' || _nextChar == 'E')
@@ -102,15 +107,15 @@ namespace LuaSharp
                         }
                         else
                         {
-                            return CreateNumber(buffer);
+                            return CreateNumber(buffer, token);
                         }
                         break;
                     case LexerState.ReadingString:
                         ReadChar();
                         buffer.Append(_curChar);
-                        if (_curChar == buffer[0] && buffer[^2] != '\\')
+                        if (_curChar == buffer[0] && buffer.Length > 1 && buffer[^2] != '\\')
                         {
-                            return CreateString(buffer);
+                            return CreateString(buffer, token);
                         }
                         break;
                     case LexerState.ReadingComment:
@@ -120,15 +125,14 @@ namespace LuaSharp
                 }
             }
 
-            var token = state switch
+            return state switch
             {
-                LexerState.Start => new Token(TokenType.EOF, "EOF", _line, _column, _filename),
-                LexerState.ReadingIdentifier => CreateIdentifier(buffer),
-                LexerState.ReadingNumber => CreateNumber(buffer),
-                LexerState.ReadingString => CreateString(buffer),
-                _ => new Token(TokenType.EOF, "EOF", _line, _column, _filename),
+                LexerState.Start => token.SetLiteral("EOF").SetType(TokenType.EOF),
+                LexerState.ReadingIdentifier => CreateIdentifier(buffer, token),
+                LexerState.ReadingNumber => CreateNumber(buffer, token),
+                LexerState.ReadingString => CreateString(buffer, token),
+                _ => token.SetLiteral("ILLEGAL").SetType(TokenType.ILLEGAL),
             };
-            return token;
         }
 
         private void ReadChar()
@@ -137,204 +141,186 @@ namespace LuaSharp
             _nextChar = (char)_stream.Peek();
         }
 
-        private Token CreateIdentifier(StringBuilder buffer)
+        private Token CreateIdentifier(StringBuilder buffer, Token token)
         {
             string identifier = buffer.ToString();
             var len = identifier.Length;
             TokenType type = _keywords.TryGetValue(identifier, out TokenType value) ? value : TokenType.IDENTIFIER;
-            var token = new Token(type, identifier, _line, _column, _filename);
+            token.SetType(type).SetLiteral(identifier);
             _column += len;
             return token;
         }
 
-        private Token CreateNumber(StringBuilder buffer)
+        private Token CreateNumber(StringBuilder buffer, Token token)
         {
             string numberString = buffer.ToString();
             var len = numberString.Length;
             string integerPattern = @"\b(0[xX][A-Fa-f0-9]+|\d+)\b";
             string floatPattern = @"\b(?:\d+\.\d+|\d+)(?:[eE][+-]?\d+)?\b";
-            var token = (Regex.IsMatch(numberString, integerPattern)
+            _ = (Regex.IsMatch(numberString, integerPattern)
                 || Regex.IsMatch(numberString, floatPattern)) ?
-                new Token(TokenType.NUMERICAL, numberString, _line, _column, _filename) :
-                new Token(TokenType.ILLEGAL, numberString, _line, _column, _filename);
+                token.SetType(TokenType.NUMERICAL).SetLiteral(numberString) :
+                token.SetType(TokenType.ILLEGAL).SetLiteral(numberString);
             _column += len;
             return token;
         }
 
-        private Token CreateString(StringBuilder buffer)
+        private Token CreateString(StringBuilder buffer, Token token)
         {
             string stringLiteral = buffer.ToString();
             var len = stringLiteral.Length;
-            TokenType type = (_curChar == buffer[0] && buffer[^2] != '\\') ?
+            TokenType type = (_curChar == buffer[0] && buffer.Length > 1 && buffer[^2] != '\\') ?
                 TokenType.STRING : TokenType.ILLEGAL;
-            var token = new Token(type, stringLiteral, _line, _column, _filename);
+            token.SetType(type).SetLiteral(stringLiteral);
             _column += len;
             return token;
         }
 
-        private Token ReadSymbol() => _curChar switch
+        private Token ReadSymbol(Token token)
         {
-            '+' => new Token(TokenType.PLUS, _curChar.ToString(), _line, _column++, _filename),
-            '-' => new Token(TokenType.MINUS, _curChar.ToString(), _line, _column++, _filename),
-            '*' => new Token(TokenType.ASTERISK, _curChar.ToString(), _line, _column++, _filename),
-            '/' => PeekAndReadSlash(),
-            '%' => new Token(TokenType.PERCENTAGE, _curChar.ToString(), _line, _column++, _filename),
-            '^' => new Token(TokenType.CARET, _curChar.ToString(), _line, _column++, _filename),
-            '#' => new Token(TokenType.HASHTAG, _curChar.ToString(), _line, _column++, _filename),
-            '<' => PeekAndReadLessThan(),
-            '>' => PeekAndReadGreaterThan(),
-            '=' => PeekAndReadEquals(),
-            '(' => new Token(TokenType.L_PARENT, _curChar.ToString(), _line, _column++, _filename),
-            ')' => new Token(TokenType.R_PARENT, _curChar.ToString(), _line, _column++, _filename),
-            '{' => new Token(TokenType.L_CURLY, _curChar.ToString(), _line, _column++, _filename),
-            '}' => new Token(TokenType.R_CURLY, _curChar.ToString(), _line, _column++, _filename),
-            '[' => new Token(TokenType.L_SQUARE, _curChar.ToString(), _line, _column++, _filename),
-            ']' => new Token(TokenType.R_SQUARE, _curChar.ToString(), _line, _column++, _filename),
-            '&' => new Token(TokenType.B_AND, _curChar.ToString(), _line, _column++, _filename),
-            '|' => new Token(TokenType.B_OR, _curChar.ToString(), _line, _column++, _filename),
-            ';' => new Token(TokenType.SEMICOLON, _curChar.ToString(), _line, _column++, _filename),
-            ':' => PeekAndReadColon(),
-            ',' => new Token(TokenType.COMMA, _curChar.ToString(), _line, _column++, _filename),
-            '.' => PeekAndReadPeriod(),
-            '~' => PeekAndReadTilde(),
-            _ => new Token(TokenType.ILLEGAL, _curChar.ToString(), _line, _column, _filename)
-        };
+            var literal = _curChar.ToString();
+            token.SetLiteral(literal);
 
-        private Token PeekAndReadSlash()
-        {
-            if ((char)_stream.Peek() != '/')
+            return _curChar switch
             {
-                return new Token(TokenType.SLASH, _curChar.ToString(), _line, _column++, _filename);
+                '+' => token.SetType(TokenType.PLUS),
+                '-' => token.SetType(TokenType.MINUS),
+                '*' => token.SetType(TokenType.ASTERISK),
+                '/' => PeekAndReadSlash(token),
+                '%' => token.SetType(TokenType.PERCENTAGE),
+                '^' => token.SetType(TokenType.CARET),
+                '#' => token.SetType(TokenType.HASHTAG),
+                '<' => PeekAndReadLessThan(token),
+                '>' => PeekAndReadGreaterThan(token),
+                '=' => PeekAndReadEquals(token),
+                '(' => token.SetType(TokenType.L_PARENT),
+                ')' => token.SetType(TokenType.R_PARENT),
+                '{' => token.SetType(TokenType.L_CURLY),
+                '}' => token.SetType(TokenType.R_CURLY),
+                '[' => token.SetType(TokenType.L_SQUARE),
+                ']' => token.SetType(TokenType.R_SQUARE),
+                '&' => token.SetType(TokenType.B_AND),
+                '|' => token.SetType(TokenType.B_OR),
+                ';' => token.SetType(TokenType.SEMICOLON),
+                ':' => PeekAndReadColon(token),
+                ',' => token.SetType(TokenType.COMMA),
+                '.' => PeekAndReadPeriod(token),
+                '~' => PeekAndReadTilde(token),
+                _ => token.SetType(TokenType.ILLEGAL)
+            };
+        }
+
+        private Token PeekAndReadSlash(Token token)
+        {
+            if (_nextChar != '/')
+            {
+                return token.SetType(TokenType.SLASH);
             }
             ReadChar();
-            var token = new Token(TokenType.F_DIV, "//", _line, _column, _filename);
-            _column += 2;
+            token.SetType(TokenType.F_DIV).SetLiteral("//");
+            _column++;
             return token;
         }
 
-        private Token PeekAndReadLessThan()
+        private Token PeekAndReadLessThan(Token token)
         {
-            var peek = (char)_stream.Peek();
-            if (peek == '=')
+            if (_nextChar == '=')
             {
                 ReadChar();
-                var token = new Token(TokenType.LESS_EQUAL, "<=", _line, _column, _filename);
-                _column += 2;
+                token.SetType(TokenType.LESS_EQUAL).SetLiteral("<=");
+                _column++;
                 return token;
             }
-            else if (peek == '<')
+            else if (_nextChar == '<')
             {
                 ReadChar();
-                var token = new Token(TokenType.B_LSHIFT, "<<", _line, _column, _filename);
-                _column += 2;
+                token.SetType(TokenType.B_LSHIFT).SetLiteral("<<");
+                _column++;
                 return token;
             }
-            else
-            {
-                return new Token(TokenType.LESS, _curChar.ToString(), _line, _column++, _filename);
-            }
+            return token.SetType(TokenType.LESS);
         }
 
-        private Token PeekAndReadGreaterThan()
+        private Token PeekAndReadGreaterThan(Token token)
         {
-            var peek = (char)_stream.Peek();
-            if (peek == '=')
+            if (_nextChar == '=')
             {
                 ReadChar();
-                var token = new Token(TokenType.MORE_EQUAL, ">=", _line, _column, _filename);
-                _column += 2;
+                token.SetType(TokenType.MORE_EQUAL).SetLiteral(">=");
+                _column++;
                 return token;
             }
-            else if (peek == '>')
+            else if (_nextChar == '>')
             {
                 ReadChar();
-                var token = new Token(TokenType.B_RSHIFT, ">>", _line, _column, _filename);
-                _column += 2;
+                token.SetType(TokenType.B_RSHIFT).SetLiteral(">>");
+                _column++;
                 return token;
             }
-            else
-            {
-                return new Token(TokenType.MORE, _curChar.ToString(), _line, _column++, _filename);
-            }
+            return token.SetType(TokenType.MORE);
         }
 
-        private Token PeekAndReadEquals()
+        private Token PeekAndReadEquals(Token token)
         {
-            var peek = (char)_stream.Peek();
-            if (peek == '=')
+            if (_nextChar == '=')
             {
                 ReadChar();
-                var token = new Token(TokenType.EQUAL, "==", _line, _column, _filename);
-                _column += 2;
+                token.SetType(TokenType.EQUAL).SetLiteral("==");
+                _column++;
                 return token;
             }
-            else
-            {
-                return new Token(TokenType.ASSIGN, _curChar.ToString(), _line, _column++, _filename);
-            }
+            return token.SetType(TokenType.ASSIGN);
         }
 
-        private Token PeekAndReadColon()
+        private Token PeekAndReadColon(Token token)
         {
-            var peek = (char)_stream.Peek();
-            if (peek == ':')
+            if (_nextChar == ':')
             {
                 ReadChar();
-                var token = new Token(TokenType.LABEL, "::", _line, _column, _filename);
-                _column += 2;
+                token.SetType(TokenType.LABEL).SetLiteral("::");
+                _column++;
                 return token;
             }
-            else
-            {
-                return new Token(TokenType.COLON, _curChar.ToString(), _line, _column++, _filename);
-            }
+            return token.SetType(TokenType.COLON);
         }
 
-        private Token PeekAndReadPeriod()
+        private Token PeekAndReadPeriod(Token token)
         {
-            var peek = (char)_stream.Peek();
-            if (peek == '.')
+            if (_nextChar == '.')
             {
                 ReadChar();
-                if ((char)_stream.Peek() == '.')
+                if (_nextChar == '.')
                 {
                     ReadChar();
-                    var token = new Token(TokenType.VARARG, "...", _line, _column, _filename);
-                    _column += 3;
+                    token.SetType(TokenType.VARARG).SetLiteral("...");
+                    _column += 2;
                     return token;
                 }
                 else
                 {
-                   var token = new Token(TokenType.CONCAT, "..", _line, _column, _filename);
-                    _column += 2;
+                    token.SetType(TokenType.CONCAT).SetLiteral("..");
+                    _column++;
                     return token;
                 }
             }
-            else
-            {
-                return new Token(TokenType.DOT, _curChar.ToString(), _line, _column++, _filename);
-            }
+            return token.SetType(TokenType.DOT);
         }
 
-        private Token PeekAndReadTilde()
+        private Token PeekAndReadTilde(Token token)
         {
-            var peek = (char)_stream.Peek();
-            if (peek == '=')
+            if (_nextChar == '=')
             {
                 ReadChar();
-                var token = new Token(TokenType.NOT_EQUAL, "~=", _line, _column, _filename);
-                _column += 2;
+                token.SetType(TokenType.NOT_EQUAL).SetLiteral("~=");
+                _column++;
                 return token;
             }
-            else
-            {
-                return new Token(TokenType.TILDE, _curChar.ToString(), _line, _column++, _filename);
-            }
+            return token.SetType(TokenType.TILDE);
         }
 
-        private Token ReadNewLine()
+        private Token ReadNewLine(Token token)
         {
-            var token = new Token(TokenType.NEWLINE, "", _line, _column, _filename);
+            token.SetType(TokenType.NEWLINE).SetLiteral("");
             _line++;
             _column = 1;
             return token;

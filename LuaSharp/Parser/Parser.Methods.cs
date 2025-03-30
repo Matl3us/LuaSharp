@@ -1,4 +1,6 @@
-﻿using System.Globalization;
+﻿using System.Data.Common;
+using System.Globalization;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using LuaSharp.AST;
 using LuaSharp.AST.Expressions;
@@ -389,7 +391,7 @@ namespace LuaSharp
                 return null;
             }
 
-            IExpression? step = null;
+            IExpression? step;
             if (IsPeekToken(TokenType.COMMA))
             {
                 NextToken();
@@ -400,7 +402,12 @@ namespace LuaSharp
             {
                 step = new IntegerNumeralLiteral()
                 {
-                    Token = new Token(TokenType.NUMERICAL, "1", peekToken.Line, peekToken.Column, ""),
+                    Token = new Token()
+                                .SetLine(peekToken.Line)
+                                .SetColumn(peekToken.Column)
+                                .SetFileName("")
+                                .SetLiteral("1")
+                                .SetType(TokenType.NUMERICAL),
                     Value = 1
                 };
             }

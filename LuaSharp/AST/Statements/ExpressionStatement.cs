@@ -2,7 +2,7 @@
 {
     public class ExpressionStatement : IStatement
     {
-        public Token Token { get; set; }
+        public required Token Token { get; set; }
         public IExpression? Expression { get; set; }
         public string TokenLiteral() => Token.Literal;
         public string String()

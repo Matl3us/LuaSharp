@@ -4,7 +4,7 @@ namespace LuaSharp.AST.Statements
 {
     public class AssignStatement : IStatement
     {
-        public Token Token { get; set; }
+        public required Token Token { get; set; }
         public required IdentifierLiteral Name { get; set; }
         public required IExpression Expression { get; set; }
         public bool IsLocal { get; set; }

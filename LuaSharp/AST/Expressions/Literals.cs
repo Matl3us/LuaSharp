@@ -2,7 +2,7 @@
 {
     public abstract class Literal<T> : IExpression
     {
-        public Token Token { get; set; }
+        public required Token Token { get; set; }
         public required T Value { get; set; }
 
         public string TokenLiteral() => Token.Literal;

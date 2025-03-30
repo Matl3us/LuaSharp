@@ -1,13 +1,57 @@
+using LuaSharp.AST.Expressions;
+using System.Data.Common;
+
 namespace LuaSharp
 {
-    public readonly struct Token(TokenType type, string literal, int line, int column, string filename)
+    public class Token
     {
-        public TokenType Type { get; } = type;
-        public string Literal { get; } = literal;
-        public int Line { get; } = line;
-        public int Column { get; } = column;
-        public string FileName { get; } = filename;
+        public TokenType Type { get; set; } = TokenType.ILLEGAL;
+        public string Literal { get; set; } = "";
+        public int Line { get; set; } = default;
+        public int Column { get; set; } = default;
+        public string FileName { get; set; } = "";
         public override string ToString() => $"[{Type},{Literal},{Line},{Column}]";
+
+        public Token() { }
+
+        public Token(TokenType type, string literal, int line, int column, string filename)
+        {
+            Type = type;
+            Literal = literal;
+            Line = line;
+            Column = column;
+            FileName = filename;
+        }
+
+        public Token SetType(TokenType type)
+        {
+            Type = type;
+            return this;
+        }
+
+        public Token SetLiteral(string literal)
+        {
+            Literal = literal;
+            return this;
+        }
+
+        public Token SetLine(int line)
+        {
+            Line = line;
+            return this;
+        }
+
+        public Token SetColumn(int column)
+        {
+            Column = column;
+            return this;
+        }
+
+        public Token SetFileName(string fileName)
+        {
+            FileName = fileName;
+            return this;
+        }
     }
 
     public enum TokenType

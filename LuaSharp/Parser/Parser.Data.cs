@@ -7,8 +7,11 @@ namespace LuaSharp
         public Parser(Lexer l)
         {
             lex = l;
+
+            curToken = new Token(); 
+            peekToken = lex.NextToken();
             NextToken();
-            NextToken();
+
             errors = [];
 
             PrefixParseFunc = new Dictionary<TokenType, Func<IExpression?>>()
