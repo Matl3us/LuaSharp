@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using LuaSharp.AST;
 using LuaSharp.AST.Expressions;
 using LuaSharp.AST.Statements;
+using LuaSharp.Exceptions;
 using LuaSharp.utils;
 
 namespace LuaSharp
@@ -53,7 +54,7 @@ namespace LuaSharp
                 };
             }
 
-            AddNumeralParseError();
+            AddException(ExceptionType.NUMERAL_PARSE_ERROR, "Invalid numeral value");
             return null;
         }
 
@@ -68,7 +69,7 @@ namespace LuaSharp
                 };
             }
 
-            AddBooleanParseError();
+            AddException(ExceptionType.BOOLEAN_PARSE_ERROR, "Invalid boolean value");
             return null;
         }
 
@@ -108,7 +109,7 @@ namespace LuaSharp
 
             if (!CheckAnPushToken(TokenType.R_PARENT))
             {
-                AddGroupedExpressionParseError();
+                AddException(ExceptionType.GROUPED_EXPRESSION_PARSE_ERROR, "Right parenthesis missing");
                 return null;
             }
 
@@ -186,7 +187,8 @@ namespace LuaSharp
         {
             if (!PrefixParseFunc.TryGetValue(curToken.Type, out Func<IExpression?>? prefixFunc))
             {
-                AddPrefixParseError(curToken.Type);
+                string msg = $"No prefix parse function for {curToken.Type} found";
+                AddException(ExceptionType.PREFIX_PARSE_ERROR, msg);
                 return null;
             }
 
@@ -227,7 +229,7 @@ namespace LuaSharp
 
             if (curToken.Type == TokenType.EOF)
             {
-                AddBlockStatementParseError();
+                AddException(ExceptionType.BLOCK_STATEMENT_PARSE_ERROR, "Block ending missing");
                 return null;
             }
 
@@ -239,7 +241,7 @@ namespace LuaSharp
             var name = new IdentifierLiteral() { Token = curToken, Value = curToken.Literal };
             if (!CheckAnPushToken(TokenType.ASSIGN))
             {
-                AddAssignStatementParseError();
+                AddException(ExceptionType.ASSIGN_STATEMENT_PARSE_ERROR, "Invaild assignment statement");
                 return null;
             }
 
@@ -248,7 +250,7 @@ namespace LuaSharp
             var expression = ParseExpression((int)PrecedenceValue.Lowest);
             if (expression is null)
             {
-                AddAssignStatementParseError();
+                AddException(ExceptionType.ASSIGN_STATEMENT_PARSE_ERROR, "Expression is null");
                 return null;
             }
 
@@ -265,7 +267,7 @@ namespace LuaSharp
         {
             if (!CheckAnPushToken(TokenType.IDENTIFIER))
             {
-                AddAssignStatementParseError();
+                AddException(ExceptionType.ASSIGN_STATEMENT_PARSE_ERROR, "Identifier is null");
                 return null;
             }
 
@@ -279,7 +281,7 @@ namespace LuaSharp
             var expression = ParseExpression((int)PrecedenceValue.Lowest);
             if (expression is null)
             {
-                AddReturnStatementParseError();
+                AddException(ExceptionType.RETURN_STATEMENT_PARSE_ERROR, "Invaild return statement");
                 return null;
             }
 
@@ -297,14 +299,14 @@ namespace LuaSharp
             var condition = ParseExpression((int)PrecedenceValue.Lowest);
             if (!CheckAnPushToken(TokenType.THEN) || condition == null)
             {
-                AddIfStatementParseError();
+                AddException(ExceptionType.IF_STATEMENT_PARSE_ERROR, "Invalid format of If statement");
                 return null;
             }
 
             var consequence = ParseBlockStatement();
             if (consequence == null)
             {
-                AddBlockStatementParseError();
+                AddException(ExceptionType.BLOCK_STATEMENT_PARSE_ERROR, "Block ending missing");
                 return null;
             }
 
@@ -321,7 +323,7 @@ namespace LuaSharp
                     };
                 }
 
-                AddIfStatementParseError();
+                AddException(ExceptionType.IF_STATEMENT_PARSE_ERROR, "Invalid format of If statement");
                 return null;
             }
             else if (IsCurToken(TokenType.END))
@@ -335,7 +337,7 @@ namespace LuaSharp
             }
             else
             {
-                AddIfStatementParseError();
+                AddException(ExceptionType.IF_STATEMENT_PARSE_ERROR, "Invalid format of If statement");
                 return null;
             }
 
@@ -348,14 +350,14 @@ namespace LuaSharp
             var condition = ParseExpression((int)PrecedenceValue.Lowest);
             if (!CheckAnPushToken(TokenType.DO) || condition == null)
             {
-                AddWhileStatementParseError();
+                AddException(ExceptionType.WHILE_STATEMENT_PARSE_ERROR, "Invalid format of while statement");
                 return null;
             }
 
             var body = ParseBlockStatement();
             if (body == null)
             {
-                AddBlockStatementParseError();
+                AddException(ExceptionType.BLOCK_STATEMENT_PARSE_ERROR, "Block ending missing");
                 return null;
             }
 
@@ -369,7 +371,7 @@ namespace LuaSharp
             }
             else
             {
-                AddWhileStatementParseError();
+                AddException(ExceptionType.WHILE_STATEMENT_PARSE_ERROR, "Invalid format of while statement");
                 return null;
             }
         }
@@ -420,7 +422,7 @@ namespace LuaSharp
             var body = ParseBlockStatement();
             if (body == null)
             {
-                AddBlockStatementParseError();
+                AddException(ExceptionType.BLOCK_STATEMENT_PARSE_ERROR, "Block ending missing");
                 return null;
             }
 
@@ -445,7 +447,7 @@ namespace LuaSharp
             var body = ParseBlockStatement();
             if (!IsCurToken(TokenType.UNTIL) || body == null)
             {
-                AddBlockStatementParseError();
+                AddException(ExceptionType.BLOCK_STATEMENT_PARSE_ERROR, "Block ending missing");
                 return null;
             }
             NextToken();
@@ -627,79 +629,25 @@ namespace LuaSharp
             }
             else
             {
-                AddPeekError(type);
+                AddException(ExceptionType.PEEK_ERROR, $"Expected token {type} but got {peekToken.Type} instead");
                 return false;
             }
         }
 
+        public List<LuaException> GetErrors() => errors;
+
         public void PrintErrors()
         {
-            foreach (string err in errors)
+            foreach (var err in errors)
             {
-                Console.WriteLine($"Error: {err}");
+                err.PrintException();
             }
         }
 
-        public List<string> GetErrors() => errors;
-
-        public void AddNumeralParseError()
+        public void AddException(ExceptionType type, string msg)
         {
-            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvalid numeral value\n";
-            errors.Add(msg);
-        }
-
-        public void AddBooleanParseError()
-        {
-            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvalid boolean value\n";
-            errors.Add(msg);
-        }
-
-        public void AddGroupedExpressionParseError()
-        {
-            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nRight parenthesis missing\n";
-            errors.Add(msg);
-        }
-
-        public void AddBlockStatementParseError()
-        {
-            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nBlock ending missing\n";
-            errors.Add(msg);
-        }
-
-        public void AddAssignStatementParseError()
-        {
-            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvaild assignment statement\n";
-            errors.Add(msg);
-        }
-
-        public void AddReturnStatementParseError()
-        {
-            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvaild return statement\n";
-            errors.Add(msg);
-        }
-
-        public void AddIfStatementParseError()
-        {
-            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvalid format of If statement\n";
-            errors.Add(msg);
-        }
-
-        public void AddWhileStatementParseError()
-        {
-            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nInvalid format of while statement\n";
-            errors.Add(msg);
-        }
-
-        public void AddPeekError(TokenType type)
-        {
-            string msg = $"Error at line {peekToken.Line} column {peekToken.Column}\nExpected token {type} but got {peekToken.Type} instead\n";
-            errors.Add(msg);
-        }
-
-        public void AddPrefixParseError(TokenType type)
-        {
-            string msg = $"No prefix parse function for {type} found";
-            errors.Add(msg);
+            var exception = new LuaException(type, msg, peekToken.Line, peekToken.Column);
+            errors.Add(exception);
         }
     }
 }

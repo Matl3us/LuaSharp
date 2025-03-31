@@ -1,4 +1,5 @@
 ﻿using LuaSharp.AST;
+using LuaSharp.Exceptions;
 
 namespace LuaSharp
 {
@@ -60,7 +61,7 @@ namespace LuaSharp
         private readonly Lexer lex;
         private Token curToken;
         private Token peekToken;
-        private readonly List<string> errors;
+        private readonly List<LuaException> errors;
 
         private readonly Dictionary<TokenType, Func<IExpression?>> PrefixParseFunc;
         private readonly Dictionary<TokenType, Func<IExpression, IExpression>> InfixParseFunc;
