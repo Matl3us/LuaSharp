@@ -1,71 +1,37 @@
-using LuaSharp;
 using System.Text;
+using LuaSharp;
 
 namespace Test
 {
     public class LexerTest
     {
-        [Fact]
-        public void ShouldIdentifyValidIdentifiers()
+        [Theory]
+        [InlineData("_validIdentifier valid123 my_var _tempVar _3var 1invalid 123test")]
+        public void ShouldIdentifyValidIdentifiers(string input)
         {
-            string input = "_validIdentifier valid123 my_var " +
-                           "_tempVar _3var 1invalid 123test";
-
-            var output = new List<Token>();
-            byte[] byteArray = Encoding.ASCII.GetBytes(input);
-            var stream = new MemoryStream(byteArray);
-            var lexer = new Lexer(new StreamReader(stream), "test.lua");
-
-            while (true)
-            {
-                Token tok = lexer.NextToken();
-                output.Add(tok);
-                if (tok.Type == TokenType.EOF) break;
-            }
-
-            var expectedOutcome = new List<Token>
+            var actual = TokenizeInput(input);
+            var expected = new List<Token>
             {
                 new (TokenType.IDENTIFIER, "_validIdentifier", 1, 1, "test.lua"),
                 new (TokenType.IDENTIFIER, "valid123", 1, 18, "test.lua"),
                 new (TokenType.IDENTIFIER, "my_var", 1, 27, "test.lua"),
                 new (TokenType.IDENTIFIER, "_tempVar", 1, 34, "test.lua"),
                 new (TokenType.IDENTIFIER, "_3var", 1, 43, "test.lua"),
-
                 new (TokenType.ILLEGAL, "1invalid", 1, 49, "test.lua"),
                 new (TokenType.ILLEGAL, "123test", 1, 58, "test.lua"),
-
                 new (TokenType.EOF, "EOF", 1, 65, "test.lua")
             };
 
-            Assert.Equal(expectedOutcome.Count, output.Count);
-            for (int i = 0; i < expectedOutcome.Count; i++)
-            {
-                Assert.Equal(expectedOutcome[i].Type, output[i].Type);
-                Assert.Equal(expectedOutcome[i].Literal, output[i].Literal);
-                Assert.Equal(expectedOutcome[i].Line, output[i].Line);
-                Assert.Equal(expectedOutcome[i].Column, output[i].Column);
-                Assert.Equal(expectedOutcome[i].FileName, output[i].FileName);
-            }
+            AssertTokens(expected, actual);
         }
 
-        [Fact]
-        public void ShouldIdentifyKeywords()
+        [Theory]
+        [InlineData("and break do else elseif end false for function goto if in " +
+            "local nil not or repeat return then true until while")]
+        public void ShouldIdentifyKeywords(string input)
         {
-            string input = "and break do else elseif end false for function " +
-                "goto if in local nil not or repeat return then true until while";
-
-            var output = new List<Token>();
-            byte[] byteArray = Encoding.ASCII.GetBytes(input);
-            var stream = new MemoryStream(byteArray);
-            var lexer = new Lexer(new StreamReader(stream), "test.lua");
-            while (true)
-            {
-                Token tok = lexer.NextToken();
-                output.Add(tok);
-                if (tok.Type == TokenType.EOF) break;
-            }
-
-            var expectedOutcome = new List<Token>
+            var actual = TokenizeInput(input);
+            var expected = new List<Token>
             {
                 new (TokenType.AND, "and", 1, 1, "test.lua"),
                 new (TokenType.BREAK, "break", 1, 5, "test.lua"),
@@ -92,35 +58,15 @@ namespace Test
                 new (TokenType.EOF, "EOF", 1, 112, "test.lua")
             };
 
-            Assert.Equal(expectedOutcome.Count, output.Count);
-            for (int i = 0; i < expectedOutcome.Count; i++)
-            {
-                Assert.Equal(expectedOutcome[i].Type, output[i].Type);
-                Assert.Equal(expectedOutcome[i].Literal, output[i].Literal);
-                Assert.Equal(expectedOutcome[i].Line, output[i].Line);
-                Assert.Equal(expectedOutcome[i].Column, output[i].Column);
-                Assert.Equal(expectedOutcome[i].FileName, output[i].FileName);
-            }
+            AssertTokens(expected, actual);
         }
 
-        [Fact]
-        public void ShouldIdentifyOperators()
+        [Theory]
+        [InlineData("+ - * / % ^ # & ~ | << >> // == ~= <= >= < > = ( ) { } [ ] :: : , . .. ...")]
+        public void ShouldIdentifyOperators(string input)
         {
-            string input = "+ - * / % ^ # & ~ | << >> // == " +
-                "~= <= >= < > = ( ) { } [ ] :: : , . .. ...";
-
-            var output = new List<Token>();
-            byte[] byteArray = Encoding.ASCII.GetBytes(input);
-            var stream = new MemoryStream(byteArray);
-            var lexer = new Lexer(new StreamReader(stream), "test.lua");
-            while (true)
-            {
-                Token tok = lexer.NextToken();
-                output.Add(tok);
-                if (tok.Type == TokenType.EOF) break;
-            }
-
-            var expectedOutcome = new List<Token>
+            var actual = TokenizeInput(input);
+            var expected = new List<Token>
             {
                 new (TokenType.PLUS, "+", 1, 1, "test.lua"),
                 new (TokenType.MINUS, "-", 1, 3, "test.lua"),
@@ -157,36 +103,15 @@ namespace Test
                 new (TokenType.EOF, "EOF", 1, 75, "test.lua")
             };
 
-            Assert.Equal(expectedOutcome.Count, output.Count);
-            for (int i = 0; i < expectedOutcome.Count; i++)
-            {
-                Assert.Equal(expectedOutcome[i].Type, output[i].Type);
-                Assert.Equal(expectedOutcome[i].Literal, output[i].Literal);
-                Assert.Equal(expectedOutcome[i].Line, output[i].Line);
-                Assert.Equal(expectedOutcome[i].Column, output[i].Column);
-                Assert.Equal(expectedOutcome[i].FileName, output[i].FileName);
-            }
+            AssertTokens(expected, actual);
         }
 
-        [Fact]
-        public void ShouldIdentifyValidStrings()
+        [Theory]
+        [InlineData("'string'\r\n\"test\\n123\"\r\n")]
+        public void ShouldIdentifyValidStrings(string input)
         {
-            string input = "'string'\r\n" +
-                "\"test\\n123\"\r\n";
-
-            var output = new List<Token>();
-            byte[] byteArray = Encoding.ASCII.GetBytes(input);
-            var stream = new MemoryStream(byteArray);
-            var lexer = new Lexer(new StreamReader(stream), "test.lua");
-
-            while (true)
-            {
-                Token tok = lexer.NextToken();
-                output.Add(tok);
-                if (tok.Type == TokenType.EOF) break;
-            }
-
-            var expectedOutcome = new List<Token>
+            var actual = TokenizeInput(input);
+            var expected = new List<Token>
             {
                 new (TokenType.STRING, "'string'", 1, 1, "test.lua"),
                 new (TokenType.NEWLINE, "", 1, 9, "test.lua"),
@@ -197,36 +122,15 @@ namespace Test
                 new (TokenType.EOF, "EOF", 3, 1, "test.lua")
             };
 
-            Assert.Equal(expectedOutcome.Count, output.Count);
-            for (int i = 0; i < expectedOutcome.Count; i++)
-            {
-                Assert.Equal(expectedOutcome[i].Type, output[i].Type);
-                Assert.Equal(expectedOutcome[i].Literal, output[i].Literal);
-                Assert.Equal(expectedOutcome[i].Line, output[i].Line);
-                Assert.Equal(expectedOutcome[i].Column, output[i].Column);
-                Assert.Equal(expectedOutcome[i].FileName, output[i].FileName);
-            }
+            AssertTokens(expected, actual);
         }
 
-        [Fact]
-        public void ShouldIdentifyValidNumber()
+        [Theory]
+        [InlineData("3 345 0xff 0xBEBADA 3.0 3.1416 314.16e-2 0.31416E1 34e1")]
+        public void ShouldIdentifyValidNumber(string input)
         {
-            string input = "3 345 0xff 0xBEBADA " +
-                "3.0 3.1416 314.16e-2 0.31416E1 34e1";
-
-            var output = new List<Token>();
-            byte[] byteArray = Encoding.ASCII.GetBytes(input);
-            var stream = new MemoryStream(byteArray);
-            var lexer = new Lexer(new StreamReader(stream), "test.lua");
-
-            while (true)
-            {
-                Token tok = lexer.NextToken();
-                output.Add(tok);
-                if (tok.Type == TokenType.EOF) break;
-            }
-
-            var expectedOutcome = new List<Token>
+            var actual = TokenizeInput(input);
+            var expected = new List<Token>
             {
                 new (TokenType.NUMERICAL, "3", 1, 1, "test.lua"),
                 new (TokenType.NUMERICAL, "345", 1, 3, "test.lua"),
@@ -242,15 +146,44 @@ namespace Test
                 new (TokenType.EOF, "EOF", 1, 56, "test.lua")
             };
 
-            Assert.Equal(expectedOutcome.Count, output.Count);
-            for (int i = 0; i < expectedOutcome.Count; i++)
+            AssertTokens(expected, actual);
+        }
+
+        private static List<Token> TokenizeInput(string input)
+        {
+            var output = new List<Token>();
+            byte[] byteArray = Encoding.ASCII.GetBytes(input);
+            var stream = new MemoryStream(byteArray);
+            var lexer = new Lexer(new StreamReader(stream), "test.lua");
+
+            while (true)
             {
-                Assert.Equal(expectedOutcome[i].Type, output[i].Type);
-                Assert.Equal(expectedOutcome[i].Literal, output[i].Literal);
-                Assert.Equal(expectedOutcome[i].Line, output[i].Line);
-                Assert.Equal(expectedOutcome[i].Column, output[i].Column);
-                Assert.Equal(expectedOutcome[i].FileName, output[i].FileName);
+                Token tok = lexer.NextToken();
+                output.Add(tok);
+                if (tok.Type == TokenType.EOF) break;
             }
+
+            return output;
+        }
+
+        private static void AssertTokens(List<Token> expected, List<Token> actual)
+        {
+            Assert.Equal(expected.Count, actual.Count);
+            Assert.Equal(expected, actual, new TokenComparer());
+        }
+
+        public class TokenComparer : IEqualityComparer<Token>
+        {
+            public bool Equals(Token? x, Token? y)
+            {
+                Assert.NotNull(x);
+                Assert.NotNull(y);
+                return x.Type == y.Type && x.Literal == y.Literal
+                    && x.Line == y.Line && x.Column == y.Column
+                    && x.FileName == y.FileName;
+            }
+
+            public int GetHashCode(Token obj) => obj.GetHashCode();
         }
     }
 }
