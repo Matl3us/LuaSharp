@@ -1,3 +1,5 @@
+[![build and test](https://github.com/Matl3us/LuaSharp/actions/workflows/build-and-test.yml/badge.svg?branch=main)](https://github.com/Matl3us/LuaSharp/actions/workflows/build-and-test.yml)
+
 # Lua Language Interpreter
 
 > Lua interpreter built in .NET for parsing and analyzing Lua code. This project provides an interactive REPL (Read-Eval-Print Loop) environment that allows users to interpret Lua files or analyze individual expressions, performing lexical analysis, tokenization, and partial Abstract Syntax Tree (AST) parsing.
