@@ -9,7 +9,7 @@ on:
     - '**.csproj'
 
 env:
-  DOTNET_VERSION: '8.0.14'
+  DOTNET_VERSION: '8.0'
 
 jobs:
   build-and-test:
