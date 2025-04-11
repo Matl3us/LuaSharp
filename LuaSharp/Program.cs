@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using LuaSharp.AST;
+using LuaSharp.Evaluation;
 
 namespace LuaSharp
 {
@@ -37,7 +38,9 @@ namespace LuaSharp
                         Ast ast = parser.ParseCode();
 
                         parser.PrintErrors();
-                        ast.PrintStatements();
+
+                        var evaluated = Evaluator.Eval(ast);
+                        Console.WriteLine(evaluated.InspectValue());
                     }
 
                 case "-f":
@@ -64,7 +67,9 @@ namespace LuaSharp
                         Ast ast = parser.ParseCode();
 
                         parser.PrintErrors();
-                        ast.PrintStatements();
+
+                        var evaluated = Evaluator.Eval(ast);
+                        Console.WriteLine(evaluated.InspectValue());
                     }
                     catch (Exception e)
                     {

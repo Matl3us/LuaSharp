@@ -1,6 +1,6 @@
 ﻿namespace LuaSharp.AST
 {
-    public class Ast
+    public class Ast : INode
     {
         public List<IStatement> Statements { get; set; } = [];
         public void PrintStatements()
@@ -9,6 +9,16 @@
             {
                 Console.WriteLine(st.String());
             }
+        }
+
+        public string String()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string TokenLiteral()
+        {
+            throw new NotImplementedException();
         }
     }
 }

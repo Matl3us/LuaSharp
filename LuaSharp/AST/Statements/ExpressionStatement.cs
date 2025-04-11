@@ -3,7 +3,7 @@
     public class ExpressionStatement : IStatement
     {
         public required Token Token { get; set; }
-        public IExpression? Expression { get; set; }
+        public required IExpression Expression { get; set; }
         public string TokenLiteral() => Token.Literal;
         public string String()
         {
